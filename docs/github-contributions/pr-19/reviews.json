@@ -1,0 +1,602 @@
+[
+  {
+    "id": 5229207941,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABN69hhQ",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?u=01f8ed3478602765f22b876f0cbeccf0d0a4fce4&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "### 질문 1. source_card 하나에 뉴스/공시/텔레그램 다 넣어도 되나요?\n\n지금 단계에서는 source_card를 종류별로 미리 쪼개지 않아도 괜찮다고 생각합니다. 오히려 AI 입장에서는 뉴스/공시/텔레그램을 동일한 “근거” 인터페이스로 조회할 수 있다는 장점이 있어 보여요.\n\n다만 원본 저장 영역과 AI가 소비하는 normalized 영역은 구분해서 생각하면 좋을 것 같습니다. 뉴스나 공시처럼 source별 필드와 수집 방식이 크게 다른 데이터는 각 raw/source-specific table에 저장하고, 그중 분석에 필요한 내용을 source_card라는 공통 형태로 정규화하는 방식입니다.\n\nsource_card 자체를 종류별로 분리하는 시점은 종류 개수가 많아졌을 때라기보다, card_type마다 필수 필드/제약/index/query pattern이 너무 달라져서 하나의 schema로 관리하는 비용이 커졌을 때라고 보는 게 좋을 것 같습니다.\n\n대신 지금 payload: JSONB를 자유롭게 두고 있으니, DB table을 나누지 않더라도 card_type별 payload schema는 Pydantic 등의 application-level schema로 검증해두는 걸 추천합니다.\n\n### 질문 2. 동일 카카오 ID race condition 수정 방향 맞나요?\n\n네, 맞습니다. 이 부분을 찾아내셨다니,, 훌륭합니다 👍 PostgreSQL을 쓰고 있으므로 ON CONFLICT upsert가 가장 자연스러운 것 같아요. 코드 리뷰에 언급한 부분에서 더 자세히 참고해주세요!\n\n\n### 질문 3. 로그인 모달 state를 Header로 내리는 2번 방식이 맞나요?\n\n현재 로그인 모달을 여는 주체가 Header뿐이라면 말씀하신 2번 방향이 가장 자연스럽다고 생각합니다. React.memo로 rerender를 막는 것보다 상태 자체를 필요한 범위로 좁히는 게 우선이라고 봅니다.\n\n다만 이후 관심종목/보고서 저장처럼 페이지 내부에서도 로그인 모달을 열어야 한다면 Header가 modal state를 소유하는 구조가 다시 애매해질 수 있으니, 그 시점에는 LoginModalProvider처럼 로그인 UI 상태만 별도 context로 분리하는 것도 고려하면 좋겠습니다.\n\n그리고 현재 차트는 별개로 candles 변경마다 chart instance를 다시 생성하는 구조라서, 모달 state 위치 수정과 함께 그 부분도 확인해보시면 좋을 것 같습니다.\n\n그렇지만 이 정도의 수정은 나중에 mvp 다 구현하고 남는 시간에 해도 되니까 지금은 당장 수정해야하는 범위를 판단하고 진행하시면 마감기한 조절에 도움이 될 것 같습니다!\n\n\n### 질문 4. lightweight-charts 계속 쓸까요, SVG로 통일할까요?\n\n말씀하신 혼용 방향이 괜찮다고 생각합니다. 차트를 모두 같은 구현체로 통일하기보다 필요한 interaction 수준을 기준으로 도구를 고르는 편이 좋을 것 같습니다.\n\n가격 차트처럼 확대/축소, crosshair, 거래량 overlay 등이 필요한 부분은 lightweight-charts를 유지하고, 단순 추이는 SVG, 정확한 값 전달이 중요한 곳은 list/table을 쓰는 식입니다.\n\n대신 구현 기술을 통일하기보다는 색상·숫자 포맷·tooltip·기간 선택·loading/empty 같은 사용자 경험을 공통 규칙으로 맞추는 게 더 중요해 보입니다.\n\n다만 현재 PriceVolumeChart는 candles가 바뀔 때 chart instance 전체를 다시 만드는 구조라, 라이브러리를 교체하기 전에 lifecycle을 먼저 분리해보고 실제로 스타일링/유지보수 비용이 여전히 큰지 판단해보는 걸 추천합니다.\n\n이것 또한 mvp 기능이 다 구현되어야만 디테일을 신경 쓴 걸 주장할 수 있기에,, 고민해보시고 일정 조율에 참고해주세요!\n\n\n### 질문 5. AI 팀 공유 DB는 언제부터 쓰는 게 좋나요?\n\n제가 기준을 잡는다면 \"두 명 이상의 개발자가 같은 데이터를 바탕으로 end-to-end 흐름을 검증해야 하는 순간\"인 것 같습니다.\n\n```\ncollector\n  ↓\nraw news/report\n  ↓\nsource_card\n  ↓\nagent\n  ↓\nreport / citation\n  ↓\nAPI\n```\n이 중 한 vertical slice가 실제로 연결되기 시작하면 공유 DB가 유용한 시점이라고 생각합니다. \n\n대신 공유 DB를 먼저 열기보다 migration 체계, table/schema ownership, seed 또는 snapshot 데이터를 먼저 잡는 걸 추천합니다. 특히 지금처럼 backend와 ai가 같은 PostgreSQL을 보면서 각각 create_all을 수행하는 구조에서는 공유 DB가 생긴 이후 수동으로 schema를 맞추기 시작하면 금방 꼬일 가능성이 있습니다..\n\n각자 개발은 local DB + fixture로 계속하고, 공유 DB는 integration/staging 데이터베이스로 쓰는 구조가 좋을 것 같아요.\n\n즉 “schema가 완성되면 공유한다”보다는 “첫 실제 통합 테스트가 필요해질 때, migration 체계를 갖춘 상태로 공유한다” 정도로 기준을 잡으면 좋겠습니다.\n\n",
+    "state": "CHANGES_REQUESTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5229207941",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5229207941"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-16T23:27:16Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5242450784,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOHlzYA",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5242450784",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5242450784"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-17T23:35:05Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5243047159,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOIKM9w",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5243047159",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5243047159"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T01:03:30Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5244754807,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOJybdw",
+    "user": {
+      "login": "jiw0nahn",
+      "id": 128668708,
+      "node_id": "U_kgDOB6tUJA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128668708?u=9b58a3b11070a927afce651aa54c466a182241cc&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/jiw0nahn",
+      "html_url": "https://github.com/jiw0nahn",
+      "followers_url": "https://api.github.com/users/jiw0nahn/followers",
+      "following_url": "https://api.github.com/users/jiw0nahn/following{/other_user}",
+      "gists_url": "https://api.github.com/users/jiw0nahn/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/jiw0nahn/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/jiw0nahn/subscriptions",
+      "organizations_url": "https://api.github.com/users/jiw0nahn/orgs",
+      "repos_url": "https://api.github.com/users/jiw0nahn/repos",
+      "events_url": "https://api.github.com/users/jiw0nahn/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/jiw0nahn/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5244754807",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5244754807"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T06:07:41Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5244914837,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOJ8MlQ",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5244914837",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5244914837"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T06:33:04Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5245339086,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOKWFzg",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5245339086",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5245339086"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T07:30:53Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5247099899,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOMBj-w",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5247099899",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5247099899"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T11:07:42Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5247459247,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOMXfrw",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5247459247",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5247459247"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T11:53:07Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5247679333,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOMk7ZQ",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5247679333",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5247679333"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T12:19:06Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5253041236,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABORsMVA",
+    "user": {
+      "login": "jiw0nahn",
+      "id": 128668708,
+      "node_id": "U_kgDOB6tUJA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128668708?u=9b58a3b11070a927afce651aa54c466a182241cc&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/jiw0nahn",
+      "html_url": "https://github.com/jiw0nahn",
+      "followers_url": "https://api.github.com/users/jiw0nahn/followers",
+      "following_url": "https://api.github.com/users/jiw0nahn/following{/other_user}",
+      "gists_url": "https://api.github.com/users/jiw0nahn/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/jiw0nahn/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/jiw0nahn/subscriptions",
+      "organizations_url": "https://api.github.com/users/jiw0nahn/orgs",
+      "repos_url": "https://api.github.com/users/jiw0nahn/repos",
+      "events_url": "https://api.github.com/users/jiw0nahn/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/jiw0nahn/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5253041236",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5253041236"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-18T22:03:56Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5255632803,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOUKXow",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?u=01f8ed3478602765f22b876f0cbeccf0d0a4fce4&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5255632803",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5255632803"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-19T11:44:42Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5255633953,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOUKcIQ",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?u=01f8ed3478602765f22b876f0cbeccf0d0a4fce4&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5255633953",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5255633953"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-19T11:45:24Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5255636727,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOUKm9w",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?u=01f8ed3478602765f22b876f0cbeccf0d0a4fce4&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "다들 각자 구현한 파트에 대해서 피드백 드린 내용을 반영해주셔서 감사합니다!\n\n리뷰에서 궁금한 점이나 어려운 부분이 있다면 답글에 달아주시면 2차 리뷰에서 확인하도록 하겠습니다! 편하게 달아주세요 :)\n\n6주차도 고생하셨습니다!",
+    "state": "APPROVED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5255636727",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5255636727"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-19T11:46:59Z",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7"
+  },
+  {
+    "id": 5256067467,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOUk5iw",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5256067467",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5256067467"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-19T14:52:05Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  },
+  {
+    "id": 5256094655,
+    "node_id": "PRR_kwDOT-Ei5M8AAAABOUmjvw",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?u=78e9fffd378aaed3bf40a1b15528b308e98106de&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5256094655",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#pullrequestreview-5256094655"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "submitted_at": "2026-09-19T15:00:05Z",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26"
+  }
+]

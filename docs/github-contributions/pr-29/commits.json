@@ -1,0 +1,175 @@
+[
+  {
+    "sha": "9a8865367b76b8fb73e6cafa505c3d420ab5119f",
+    "node_id": "C_kwDOT-Ei5NoAKDlhODg2NTM2N2I3NmI4ZmI3M2U2Y2FmYTUwNWMzZDQyMGFiNTExOWY",
+    "commit": {
+      "author": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-22T10:33:29Z"
+      },
+      "committer": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-22T10:33:29Z"
+      },
+      "message": "feat(ai): 뉴스 링크 본문 수집 tool 추가",
+      "tree": {
+        "sha": "f15530a44df07ba53cb482ea1dc4aae0e42d2ac4",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/f15530a44df07ba53cb482ea1dc4aae0e42d2ac4"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/9a8865367b76b8fb73e6cafa505c3d420ab5119f",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/9a8865367b76b8fb73e6cafa505c3d420ab5119f",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/9a8865367b76b8fb73e6cafa505c3d420ab5119f",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/9a8865367b76b8fb73e6cafa505c3d420ab5119f/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/b3ec961f4cdec8bd64230fff6603351a7be4dbe7"
+      }
+    ]
+  },
+  {
+    "sha": "bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+    "node_id": "C_kwDOT-Ei5NoAKGJlYzAyNGRiOTRjYzZhZTBiZjE3ZTE5Y2NkNzc2NmQwOTJkMTI3NGY",
+    "commit": {
+      "author": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-22T10:55:53Z"
+      },
+      "committer": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-22T10:55:53Z"
+      },
+      "message": "test(ai): 실제 뉴스 링크로 도는 테스트 추가",
+      "tree": {
+        "sha": "29f7b7ccc4f1579ca0f95766c2081ea7854184dc",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/29f7b7ccc4f1579ca0f95766c2081ea7854184dc"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/bec024db94cc6ae0bf17e19ccd7766d092d1274f/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "9a8865367b76b8fb73e6cafa505c3d420ab5119f",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/9a8865367b76b8fb73e6cafa505c3d420ab5119f",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/9a8865367b76b8fb73e6cafa505c3d420ab5119f"
+      }
+    ]
+  },
+  {
+    "sha": "9e11a4c6bd60fc7b822483c50a02fea2ca663309",
+    "node_id": "C_kwDOT-Ei5NoAKDllMTFhNGM2YmQ2MGZjN2I4MjI0ODNjNTBhMDJmZWEyY2E2NjMzMDk",
+    "commit": {
+      "author": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-22T13:22:42Z"
+      },
+      "committer": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-22T13:22:42Z"
+      },
+      "message": "refactor(ai): 뉴스 링크 매직 넘버를 이름 있는 상수로 분리",
+      "tree": {
+        "sha": "c7fbad59224770144e2a7ade48354d540181edb4",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/c7fbad59224770144e2a7ade48354d540181edb4"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/9e11a4c6bd60fc7b822483c50a02fea2ca663309",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/9e11a4c6bd60fc7b822483c50a02fea2ca663309",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/9e11a4c6bd60fc7b822483c50a02fea2ca663309",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/9e11a4c6bd60fc7b822483c50a02fea2ca663309/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/bec024db94cc6ae0bf17e19ccd7766d092d1274f"
+      }
+    ]
+  },
+  {
+    "sha": "c3ac3294acabdf939a41936a223858f56a70156b",
+    "node_id": "C_kwDOT-Ei5NoAKGMzYWMzMjk0YWNhYmRmOTM5YTQxOTM2YTIyMzg1OGY1NmE3MDE1NmI",
+    "commit": {
+      "author": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-23T05:05:30Z"
+      },
+      "committer": {
+        "name": "swimny",
+        "email": "rlatnud052985@gmail.com",
+        "date": "2026-09-23T05:05:30Z"
+      },
+      "message": "chore(ai): 의존성 충돌 해결",
+      "tree": {
+        "sha": "2b9760320f4fd01e850e743ab3ae1d7d8d23a1a7",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/2b9760320f4fd01e850e743ab3ae1d7d8d23a1a7"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/c3ac3294acabdf939a41936a223858f56a70156b",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/c3ac3294acabdf939a41936a223858f56a70156b",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/c3ac3294acabdf939a41936a223858f56a70156b",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/c3ac3294acabdf939a41936a223858f56a70156b/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "9e11a4c6bd60fc7b822483c50a02fea2ca663309",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/9e11a4c6bd60fc7b822483c50a02fea2ca663309",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/9e11a4c6bd60fc7b822483c50a02fea2ca663309"
+      },
+      {
+        "sha": "069120e1e9172bccfb3b1dfb4a1e75532ffee0c4",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/069120e1e9172bccfb3b1dfb4a1e75532ffee0c4",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/069120e1e9172bccfb3b1dfb4a1e75532ffee0c4"
+      }
+    ]
+  }
+]

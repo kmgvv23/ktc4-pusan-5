@@ -1,0 +1,338 @@
+[
+  {
+    "sha": "6f05f5b4e14c1fde30539e73e4726cada12ac6b0",
+    "node_id": "C_kwDOT-Ei5NoAKDZmMDVmNWI0ZTE0YzFmZGUzMDUzOWU3M2U0NzI2Y2FkYTEyYWM2YjA",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T06:20:36Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T06:20:36Z"
+      },
+      "message": "feat(ai): PDF 본문 추출 추가\n\n- services/analyst/pdf.py: PDF 에서 텍스트 뽑기\n- tests/test_analyst_pdf.py: 쪽수 계산, 폴백 동작\n- pyproject: pypdf 의존성 추가\n\n추출 방식: pdftotext -raw 사용. -layout 은 사이드바가 본문 문장 중간에 끼어듦\n실패 판정: 종료코드 대신 글자수로 봄. 못 읽고도 0 을 주는 경우가 있음\n폴백: pdftotext 가 빈 결과를 주면 pypdf 로 다시 시도",
+      "tree": {
+        "sha": "a8d7327c214cde73353ecc8172e64ad411dcf1b0",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/a8d7327c214cde73353ecc8172e64ad411dcf1b0"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/6f05f5b4e14c1fde30539e73e4726cada12ac6b0",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/6f05f5b4e14c1fde30539e73e4726cada12ac6b0",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/6f05f5b4e14c1fde30539e73e4726cada12ac6b0",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/6f05f5b4e14c1fde30539e73e4726cada12ac6b0/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "74d1d8c340d83028cba5ba5fed3f709064ff5a1e",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/74d1d8c340d83028cba5ba5fed3f709064ff5a1e",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/74d1d8c340d83028cba5ba5fed3f709064ff5a1e"
+      }
+    ]
+  },
+  {
+    "sha": "a2b1684620839b5b193b6ebf008caad1ef1a6cfd",
+    "node_id": "C_kwDOT-Ei5NoAKGEyYjE2ODQ2MjA4MzliNWIxOTNiNmViZjAwOGNhYWQxZWYxYTZjZmQ",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T06:20:52Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T06:20:52Z"
+      },
+      "message": "feat(ai): 네이버 증권 리서치 클라이언트 추가\n\n- services/analyst/schema.py: 소스 공통 AnalystReportItem, PdfText 모델\n- services/analyst/naver.py: 목록, 상세, PDF 받기. 산업 리포트 업종의견 추출\n- tests/test_analyst_naver.py: 파싱, 증분 수집, AI 자료 제외\n- pyproject: httpx, pydantic 의존성 추가\n\n수집 범위: 카테고리 5종. market 은 daily 와 같은 데이터라 제외\n소스 검증: 한국IR협의회 [AI] 자료는 AI 가 작성한 보고서라서 수집에서 제외\n업종의견: 본문 앞 절반에서만 찾음. 뒤쪽 부록에 과거 의견이 섞여 있음\n구현: 호출이 많아 커넥션 재사용이 필요해서 함수가 아니라 클래스로 둠",
+      "tree": {
+        "sha": "ba45ffd7e78ff1b552de1d0126b8c34c2e2ab453",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/ba45ffd7e78ff1b552de1d0126b8c34c2e2ab453"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/a2b1684620839b5b193b6ebf008caad1ef1a6cfd",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a2b1684620839b5b193b6ebf008caad1ef1a6cfd",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/a2b1684620839b5b193b6ebf008caad1ef1a6cfd",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a2b1684620839b5b193b6ebf008caad1ef1a6cfd/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "6f05f5b4e14c1fde30539e73e4726cada12ac6b0",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/6f05f5b4e14c1fde30539e73e4726cada12ac6b0",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/6f05f5b4e14c1fde30539e73e4726cada12ac6b0"
+      }
+    ]
+  },
+  {
+    "sha": "720399e2eb62bd0382600eb3934d182614536602",
+    "node_id": "C_kwDOT-Ei5NoAKDcyMDM5OWUyZWI2MmJkMDM4MjYwMGViMzkzNGQxODI2MTQ1MzY2MDI",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T06:21:00Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T08:09:37Z"
+      },
+      "message": "feat(ai): 리포트 수집 컬렉터 추가\n\n- repositories/analyst_report.py: DB 읽기·쓰기. upsert_analyst_reports, known_ids\n- collectors/analyst_report.py: 수집 전체를 지휘. python -m 으로 실행\n\n    uv run python -m app.collectors.analyst_report --days 7\n\n증분 수집: 이미 받아둔 리포트는 상세를 안 부름. 건당 2회 호출이라 안 거르면 매번 다시 받음\n멱등성: 자연키로 upsert. 같은 기간을 다시 돌려도 행이 안 늘어남\n본문 보호: 이미 뽑아둔 본문을 빈 값으로 덮어쓰지 않음\n부분 저장: 카테고리 단위로 커밋해서 중간에 끊겨도 앞은 남음\n날짜 기준: 네이버가 주는 날짜가 한국 장 기준이라 수집 범위를 KST 로 고정",
+      "tree": {
+        "sha": "9a1f74c1b0e7ac5c0052c2a78b028b0540859519",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/9a1f74c1b0e7ac5c0052c2a78b028b0540859519"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/720399e2eb62bd0382600eb3934d182614536602",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/720399e2eb62bd0382600eb3934d182614536602",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/720399e2eb62bd0382600eb3934d182614536602",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/720399e2eb62bd0382600eb3934d182614536602/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "a2b1684620839b5b193b6ebf008caad1ef1a6cfd",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a2b1684620839b5b193b6ebf008caad1ef1a6cfd",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/a2b1684620839b5b193b6ebf008caad1ef1a6cfd"
+      }
+    ]
+  },
+  {
+    "sha": "a9fea3c986c5afb50d62e01317fbfd41605b6585",
+    "node_id": "C_kwDOT-Ei5NoAKGE5ZmVhM2M5ODZjNWFmYjUwZDYyZTAxMzE3ZmJmZDQxNjA1YjY1ODU",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-17T16:16:27Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-17T16:16:27Z"
+      },
+      "message": "test(ai): 테스트 함수명을 영어로 변경\n\n- tests/test_analyst_naver.py: 9개\n- tests/test_analyst_pdf.py: 2개\n- tests/test_analyst_report_model.py: 5개\n\n이유: backend/tests 가 전부 영어인데 여기만 한글이었음. 확인 안 하고 다르게 씀\n인코딩: 터미널이 ascii 면 test_목록 처럼 나와서 어느 테스트인지 못 읽음\n설명: 이름으로만 뜻을 전하던 것은 docstring 으로 옮김",
+      "tree": {
+        "sha": "74c5a2e63626ce09d880a5ba72e50f87f40d325c",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/74c5a2e63626ce09d880a5ba72e50f87f40d325c"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/a9fea3c986c5afb50d62e01317fbfd41605b6585",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a9fea3c986c5afb50d62e01317fbfd41605b6585",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/a9fea3c986c5afb50d62e01317fbfd41605b6585",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a9fea3c986c5afb50d62e01317fbfd41605b6585/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "720399e2eb62bd0382600eb3934d182614536602",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/720399e2eb62bd0382600eb3934d182614536602",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/720399e2eb62bd0382600eb3934d182614536602"
+      }
+    ]
+  },
+  {
+    "sha": "a32d0f74330a89c1d99e806e1f0ff00cf521f928",
+    "node_id": "C_kwDOT-Ei5NoAKGEzMmQwZjc0MzMwYTg5YzFkOTllODA2ZTFmMGZmMDBjZjUyMWY5Mjg",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-17T16:16:41Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-17T16:16:41Z"
+      },
+      "message": "refactor(ai): PDF 바이트 판정을 pdf.py 로 옮김\n\n- services/analyst/pdf.py: pdf_text_from_bytes 추가\n- services/analyst/naver.py: 판정 부분을 걷어내고 위 함수 호출 (48줄 → 14줄)\n- tests/test_analyst_pdf.py: 정상·비PDF·용량초과·본문없음·깨진PDF 5개\n\n문제: 받아온 바이트를 판정하는 코드가 네이버 클라이언트 안에 있었음\n       용량 확인, %PDF 서명, sha256, 임시파일, ok/empty/failed 판정 전부\n       출처와 무관한데 거기 눌러앉아 있었음\n계기: 텔레그램 수집기에서 같은 코드를 그대로 베끼게 됨. PR #18 리뷰 지적과 같은 내용\n경계: extract_pdf_text 가 Path 를 받아서 임시파일 만드는 일이 호출부 몫이었음\n       바이트를 받는 층을 하나 얹으니 호출부는 받아오기만 하면 됨",
+      "tree": {
+        "sha": "ef54ab92ff4fbe6d4dc667d3d71d79bf627e3ae7",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/ef54ab92ff4fbe6d4dc667d3d71d79bf627e3ae7"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/a32d0f74330a89c1d99e806e1f0ff00cf521f928",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a32d0f74330a89c1d99e806e1f0ff00cf521f928",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/a32d0f74330a89c1d99e806e1f0ff00cf521f928",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a32d0f74330a89c1d99e806e1f0ff00cf521f928/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "a9fea3c986c5afb50d62e01317fbfd41605b6585",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a9fea3c986c5afb50d62e01317fbfd41605b6585",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/a9fea3c986c5afb50d62e01317fbfd41605b6585"
+      }
+    ]
+  },
+  {
+    "sha": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "node_id": "C_kwDOT-Ei5NoAKDdlM2YwZjMxMDZlYTQ1YzBjNTA4NjgwNGI5NWZhNGY3MzRlMzM3Mzk",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-18T02:50:57Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-18T02:50:57Z"
+      },
+      "message": "fix(ai): 자연키에 원본 카테고리를 쓰도록 수정\n\n- models/analyst_report.py: source_category 칼럼 추가. 자연키를 그걸로 교체\n- services/analyst/schema.py: AnalystReportItem 에 source_category\n- services/analyst/naver.py: invest·daily 를 market 으로 합침. 상세 URL 은 원본 구분으로\n- repositories/analyst_report.py: known_ids·upsert 기준을 source_category 로\n- collectors/analyst_report.py: 행에 source_category 포함\n- tests: 자연키 2개, 충돌 회귀 2개\n\n문제: researchId 가 네이버 카테고리 안에서만 유일한데 자연키에 category 를 씀.\n      invest·daily 를 market 으로 합치면 서로 다른 리포트가 같은 키가 됨\n실측: invest 2026-01-16 자 37550 과 daily 2026-09-17 자 37550 이 둘 다 살아 있음.\n      같은 번호대에서 42건이 겹침. 합쳐 넣으면 한쪽이 조용히 덮어씀. 에러는 안 남\n분리: source_category 는 출처가 준 그대로, category 는 우리 분류. 원본이 남아서\n      나중에 다시 나누고 싶어져도 복원됨\n같이: 상세 URL 에 category 를 쓰면 /api/research/market/37550 이 되어 404.\n      원본 구분으로 바꿈\n확인: 네이버 5종을 목록에서 상세까지 실제로 호출해 봄\n\nPR #19 에서 mingmingmon 님이 지적한 내용입니다.",
+      "tree": {
+        "sha": "47abce5379996636aa1cba9314f972711b48abf3",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/47abce5379996636aa1cba9314f972711b48abf3"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/7e3f0f3106ea45c0c5086804b95fa4f734e33739/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "a32d0f74330a89c1d99e806e1f0ff00cf521f928",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/a32d0f74330a89c1d99e806e1f0ff00cf521f928",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/a32d0f74330a89c1d99e806e1f0ff00cf521f928"
+      }
+    ]
+  },
+  {
+    "sha": "30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+    "node_id": "C_kwDOT-Ei5NoAKDMwOTk3ZWViNDJkYWU5YWZiMGYyZDU0MTM1ZjRlMDMzODBlMmVlNWU",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-21T19:31:26Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-21T19:31:26Z"
+      },
+      "message": "refactor: AI 수집기의 스키마 관리를 Alembic으로 전환\n\n수집기의 자동 테이블 생성을 제거하고 source_category와 자연키 변경을 마이그레이션으로 관리합니다. 기존 데이터의 원본 분류를 복구하며, 복구 불가 또는 구 자연키 충돌 시 변경을 중단합니다.\n\nAI 테이블 비교 범위와 버전 테이블을 분리하고 기존 DB 전환 절차를 문서화했습니다. PostgreSQL 테스트 포함 33개와 Ruff 검사를 통과했습니다.",
+      "tree": {
+        "sha": "f0d6ef04a09051427d85c40dba0ce91c120e945c",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/f0d6ef04a09051427d85c40dba0ce91c120e945c"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/30997eeb42dae9afb0f2d54135f4e03380e2ee5e/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/7e3f0f3106ea45c0c5086804b95fa4f734e33739"
+      }
+    ]
+  },
+  {
+    "sha": "099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "node_id": "C_kwDOT-Ei5NoAKDA5OTI0N2E5ZjQ3ZTI2M2MzOWVlMGVlYWFiYjdhOTQ4ZDBiZTQ1NTY",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-22T16:07:16Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-22T16:07:16Z"
+      },
+      "message": "fix: 원본 분류 복구 실패 시 건수와 리포트 ID 표시\n\nSQL 예외에 전체 실패 건수와 최대 5개 ID를 포함하고, 롤백 후 전체 실패 행을 확인하는 조회문을 README에 추가합니다. SQL 출력 모드와 데이터 롤백을 유지하며 PostgreSQL 테스트 포함 34개 및 Ruff 검사를 통과했습니다.",
+      "tree": {
+        "sha": "88f2aca5d0d0e248b076a7df30c19e17550093eb",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/88f2aca5d0d0e248b076a7df30c19e17550093eb"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/099247a9f47e263c39ee0eeaabb7a948d0be4556",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/099247a9f47e263c39ee0eeaabb7a948d0be4556/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/30997eeb42dae9afb0f2d54135f4e03380e2ee5e"
+      }
+    ]
+  }
+]

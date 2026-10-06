@@ -1,0 +1,745 @@
+[
+  {
+    "sha": "8fc3c8bb7841a7140892f6e462aac4ce4d752b0b",
+    "node_id": "C_kwDOT-Ei5NoAKDhmYzNjOGJiNzg0MWE3MTQwODkyZjZlNDYyYWFjNGNlNGQ3NTJiMGI",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T05:43:48Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T05:43:48Z"
+      },
+      "message": "chore(ai): 보고서 생성 시스템 프롬프트와 실행 산출물 픽스처 추가\n\n적재 대상 JSON 스키마의 계약 원본이다. 프롬프트의 규칙은 근거 검증·실행 점검\n스크립트의 검사 항목과 짝이라 한쪽만 바꾸면 검증이 죽는다. 수정하지 않는다.\n\n픽스처는 실제 실행 산출물 네 건이다. verdict 세 종류(explained /\npartially_explained / no_clear_cause)와 background 의 문자열·객체 혼용,\ncounter: null, 상한 초과 케이스가 전부 들어 있어 파싱 테스트의 입력으로 쓴다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "7b16b45a4e75102870d16e01595165e054ab1d70",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/7b16b45a4e75102870d16e01595165e054ab1d70"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/8fc3c8bb7841a7140892f6e462aac4ce4d752b0b",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/8fc3c8bb7841a7140892f6e462aac4ce4d752b0b",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/8fc3c8bb7841a7140892f6e462aac4ce4d752b0b",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/8fc3c8bb7841a7140892f6e462aac4ce4d752b0b/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/b3ec961f4cdec8bd64230fff6603351a7be4dbe7"
+      }
+    ]
+  },
+  {
+    "sha": "56fda871127188b8ba2eacb5feb7cb853eee02d5",
+    "node_id": "C_kwDOT-Ei5NoAKDU2ZmRhODcxMTI3MTg4YjhiYTJlYWNiNWZlYjdjYjg1M2VlZTAyZDU",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T05:44:05Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T05:44:05Z"
+      },
+      "message": "feat(ai): 종목 변동 요인 보고서 테이블 추가\n\n우리가 LLM 으로 생성한 보고서를 담는다. stock_move_report 접두사로 묶어\nanalyst_reports(증권사 원문) 및 backend 의 report / report_block /\nreport_citation 과 같은 Postgres 에서 이름이 겹치지 않게 했다. create_all 은\n이미 있는 표를 조용히 건너뛰어서, 겹치면 어긋난 채로 돈다.\n\n  stock_move_reports                본체. 한 행 = 보고서 한 회차\n  stock_move_report_factors         원인\n  stock_move_report_factor_sources  원인별 출처\n  stock_move_report_reviews         검수 판정. 이번엔 표만 만들고 쓰지 않는다\n\nINSERT only 다. 프롬프트가 \"이전 회차를 언급하지 않는다\" 고 규정해 각 회차가\n독립 문서이므로 자연키 (ticker, target_date, as_of) 에 UNIQUE 를 걸지 않았다.\n\n검증 실패·스키마 위반 건도 버리지 않고 상태만 달아 적재하므로 정규화 칼럼은\n전부 nullable 이고 raw_json 만 NOT NULL 이다. LLM 이 채우는 칼럼에 ENUM·CHECK 를\n걸지 않은 이유도 같다 — 값이 어긋난 행이 거절되면 정작 원인 분석에 제일 필요한\n행만 못 들어온다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "ae2748d4c148d31376b9cd79b861e5637a609d2d",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/ae2748d4c148d31376b9cd79b861e5637a609d2d"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/56fda871127188b8ba2eacb5feb7cb853eee02d5",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/56fda871127188b8ba2eacb5feb7cb853eee02d5",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/56fda871127188b8ba2eacb5feb7cb853eee02d5",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/56fda871127188b8ba2eacb5feb7cb853eee02d5/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "8fc3c8bb7841a7140892f6e462aac4ce4d752b0b",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/8fc3c8bb7841a7140892f6e462aac4ce4d752b0b",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/8fc3c8bb7841a7140892f6e462aac4ce4d752b0b"
+      }
+    ]
+  },
+  {
+    "sha": "1ba44d44e732be9c87adc8e5725551457ce673a4",
+    "node_id": "C_kwDOT-Ei5NoAKDFiYTQ0ZDQ0ZTczMmJlOWM4N2FkYzhlNTcyNTU1MTQ1N2NlNjczYTQ",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T05:44:06Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T05:44:06Z"
+      },
+      "message": "feat(ai): 보고서 JSON 파싱·정규화·적재 리포지토리 추가\n\nruns/<타임스탬프>/parsed/*.json 파일을 읽어 넣는다. 파일은 2단이다 — 바깥은\n실험 파이프라인의 실행 기록 래퍼고 보고서 JSON 은 final_text 안에 문자열로\n들어 있다. 래퍼에서는 final_text / json_status / schema_problems / is_error /\nasked_question 다섯 개만 읽고 나머지는 흘려보낸다. 래퍼는 실험 환경 산출물이라\n필드가 늘거나 주는데 모르는 필드에 걸려 죽으면 적재가 통째로 멈춘다.\n\n래퍼의 verdict / n_factors / n_sources 는 저장하지 않는다. final_text 안의\n값을 다시 센 것이라 두 군데 두면 어긋났을 때 무엇을 믿을지 문제가 된다.\n\nbackground 항목의 문자열·객체 혼용은 적재가 흡수해 {text, watch} 로 편다.\n프롬프트는 검증 스크립트와 짝이라 못 고치므로 불편한 구조를 여기서 받는다.\n\nfactors 4 / terms 8 / background 전체 6·칸당 3 초과는 잘라내지 않고 로그에만\n남긴다. 적재가 말없이 자르면 실행 점검 스크립트의 상한 검사가 영원히 통과한다.\n\n근거 검증은 하지 않는다. verify_status 는 인자로 받고 기본값은 not_verified 다.\n검증기 연결은 후속 PR 이다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "99987b84a1b20f2c79daec2270de5b765d0e59c0",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/99987b84a1b20f2c79daec2270de5b765d0e59c0"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/1ba44d44e732be9c87adc8e5725551457ce673a4",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/1ba44d44e732be9c87adc8e5725551457ce673a4",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/1ba44d44e732be9c87adc8e5725551457ce673a4",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/1ba44d44e732be9c87adc8e5725551457ce673a4/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "56fda871127188b8ba2eacb5feb7cb853eee02d5",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/56fda871127188b8ba2eacb5feb7cb853eee02d5",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/56fda871127188b8ba2eacb5feb7cb853eee02d5"
+      }
+    ]
+  },
+  {
+    "sha": "e00d6fa39ff989dbf5b20979da70875626d37ac3",
+    "node_id": "C_kwDOT-Ei5NoAKGUwMGQ2ZmEzOWZmOTg5ZGJmNWIyMDk3OWRhNzA4NzU2MjZkMzdhYzM",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T12:58:05Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T12:58:05Z"
+      },
+      "message": "docs(ai): 적재 리포지토리에 보고서 생성 과정 설명 보강\n\n보고서가 어떻게 만들어지는지 모르는 사람이 읽었을 때 코드의 판단 근거를 따라갈\n수 없었다. 파이프라인 7단계에서 이 모듈의 자리, 보고서 한 편의 구성, 판정 세\n종류와 그에 따라 뒷칸 모양이 달라지는 규칙을 모듈 docstring 에 적었다.\n\n각 칸의 도메인 의미도 붙였다. stance 와 direction_match 가 왜 factors 에는\ntrue 만 들어오는지, size_fit 이 판정을 어떻게 가르는지, quote 가 왜 글자\n그대로여야 하는지(검증기가 원본과 대조한다), terms 의 plain 이 왜 본문과\n일치해야 하는지(화면이 글자로 찾아 색을 입힌다), background 의 watch 가 무엇인지.\n\n상한을 자르지 않는 근거에 관측치 논지를 덧붙였다. 잘라내면 잘린 내용뿐 아니라\n\"이 프롬프트가 상한을 얼마나 자주 어기는가\" 라는 자료도 같이 사라진다.\n\n코드 동작은 그대로다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "fa79526249af11d2b9ec2d7923babc08911175c3",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/fa79526249af11d2b9ec2d7923babc08911175c3"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/e00d6fa39ff989dbf5b20979da70875626d37ac3",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/e00d6fa39ff989dbf5b20979da70875626d37ac3",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/e00d6fa39ff989dbf5b20979da70875626d37ac3",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/e00d6fa39ff989dbf5b20979da70875626d37ac3/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "1ba44d44e732be9c87adc8e5725551457ce673a4",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/1ba44d44e732be9c87adc8e5725551457ce673a4",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/1ba44d44e732be9c87adc8e5725551457ce673a4"
+      }
+    ]
+  },
+  {
+    "sha": "d0281183eb125c1fe495f7cdd3c79866f8f6e7b0",
+    "node_id": "C_kwDOT-Ei5NoAKGQwMjgxMTgzZWIxMjVjMWZlNDk1ZjdjZGQzYzc5ODY2ZjhmNmU3YjA",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T13:18:44Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T13:18:44Z"
+      },
+      "message": "style(ai): 보고서 적재 테스트 함수 이름을 영어로\n\n한글 설명은 docstring 이 담당한다. 함수 이름은 pytest 출력·CI 로그·IDE 트리에\n그대로 찍히는데, 콘솔 인코딩이 UTF-8 이 아니면 깨져서 어느 테스트가 실패했는지\n읽을 수가 없다. 이름은 식별자로 두고 근거는 docstring 에 남긴다.\n\n테스트 내용은 그대로다. 28 passed.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "73aa4166edb905b2b0c6461d786d4ec5d2f6f3dd",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/73aa4166edb905b2b0c6461d786d4ec5d2f6f3dd"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/d0281183eb125c1fe495f7cdd3c79866f8f6e7b0",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/d0281183eb125c1fe495f7cdd3c79866f8f6e7b0",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/d0281183eb125c1fe495f7cdd3c79866f8f6e7b0",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/d0281183eb125c1fe495f7cdd3c79866f8f6e7b0/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "e00d6fa39ff989dbf5b20979da70875626d37ac3",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/e00d6fa39ff989dbf5b20979da70875626d37ac3",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/e00d6fa39ff989dbf5b20979da70875626d37ac3"
+      }
+    ]
+  },
+  {
+    "sha": "ea27d0f52fe473be9b0cfdc7a1166a793694e6b6",
+    "node_id": "C_kwDOT-Ei5NoAKGVhMjdkMGY1MmZlNDczYmU5YjBjZmRjN2ExMTY2YTc5MzY5NGU2YjY",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T22:37:14Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-20T22:37:14Z"
+      },
+      "message": "refactor(ai): 스키마 관리를 create_all 에서 alembic 으로 옮김\n\n팀 회의 결정. ai/ 의 표를 alembic 으로 관리한다.\n\n리비전을 둘로 갈랐다. 0001 은 alembic 도입 전에 create_all 로 이미 만들어져\n있던 analyst_reports 의 baseline 이고, 0002 가 이번 보고서 표 네 개다. 한\n리비전에 몰면 쓰던 DB 에서 stamp 도 upgrade 도 맞지 않는다 — stamp 하면 새 표가\n안 생기고 upgrade 하면 analyst_reports 에서 \"이미 있다\" 로 터진다. 쓰던 DB 는\n`alembic stamp 0001` 한 번 찍고 `upgrade head` 하면 된다.\n\napp/core/database.py 의 create_tables() 를 뺐다. 스키마를 만드는 길이 둘이면\n어긋난다. create_all 은 이미 있는 표를 조용히 건너뛰어서, 모델에 칼럼을 더해도\n기존 표는 그대로다 — 코드는 새 칼럼을 쓰는데 DB 에는 없는 상태가 소리 없이\n만들어진다. 지금 레포에서 이 함수를 부르는 곳은 없었다.\n\nenv.py 의 include_object 로 backend 표를 autogenerate 대상에서 뺀다. 이 Base 는\nnews·report 를 모르므로, 그냥 두면 \"모델에 없는 표\" 로 보고 DROP 을 찍는다.\nbackend 는 아직 create_all 을 쓰는데 자기 Base 만 보므로 양쪽이 충돌하지 않는다.\n\n마이그레이션 본문은 손으로 적지 않고 alembic 렌더러로 metadata 에서 뽑았다.\n\ntests/test_migrations.py 를 넣었다. 오프라인 모드(`upgrade head --sql`)로 DDL 을\n받아 모델을 직접 컴파일한 DDL 과 칼럼 단위로 맞춘다. 모델만 고치고 마이그레이션을\n안 만드는 실수를 DB 없이 잡는다. 실제로 칼럼을 하나 넣어 실패하는지 확인했다.\n\n윈도우에서 걸린 것 둘:\n  - alembic.ini 는 로캘 인코딩으로 읽힌다. 한글 주석이 있으면 cp949 에서\n    UnicodeDecodeError 로 죽어서 영어로만 쓴다\n  - 리비전 제목(docstring 첫 줄)도 `alembic history` 에 찍히므로 영어로 쓴다\n\nENUM 을 다시 보지 않았다. \"값 목록을 나중에 못 고친다\" 는 이유는 alembic 으로\n사라졌지만, 스키마를 어긴 값이 오면 INSERT 가 거절된다는 이유가 남는다. 깨진\n건까지 적재하는 게 이 표의 존재 이유라 String 을 유지한다. 근거를 주석에 갱신했다.\n\n31 passed / ruff 통과.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "6e8c9b26970c97ae88113c347dac266e7d58fe14",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/6e8c9b26970c97ae88113c347dac266e7d58fe14"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/ea27d0f52fe473be9b0cfdc7a1166a793694e6b6",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ea27d0f52fe473be9b0cfdc7a1166a793694e6b6",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/ea27d0f52fe473be9b0cfdc7a1166a793694e6b6",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ea27d0f52fe473be9b0cfdc7a1166a793694e6b6/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "d0281183eb125c1fe495f7cdd3c79866f8f6e7b0",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/d0281183eb125c1fe495f7cdd3c79866f8f6e7b0",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/d0281183eb125c1fe495f7cdd3c79866f8f6e7b0"
+      }
+    ]
+  },
+  {
+    "sha": "0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f",
+    "node_id": "C_kwDOT-Ei5NoAKDBhZmM2YzZlYjAyYmY3YTJmYTlmNDYwOTkzMjM5OWI0ZGVjOTRhNGY",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-22T10:30:56Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-22T10:30:56Z"
+      },
+      "message": "refactor(ai): 종목 변동 분석 표 이름을 analysis 로 변경\n\nPR 리뷰에서 정한 이름 규칙을 따른다.\n\n  analyst_report       증권사 애널리스트가 쓴 원문. 남이 쓴 것\n  stock_move_analysis  우리가 생성한 종목 변동 요인 분석\n\nreport 라는 말이 둘 다를 가리켜 구분이 안 됐다. brief 는 쓰지 않았다 —\n나중에 \"왜 올랐나\" 를 한두 줄로 보여주는 기능이 생기면 그게 brief 인데,\nfactors·background·terms 까지 붙은 지금 산출물이 그 이름을 선점하면 안 된다.\n\n표 이름은 복수형 관례(analyst_reports)를 따라 stock_move_analyses 로 했다.\n자식 표의 FK 컬럼 report_id 도 analysis_id 로 바꿨다. 아직 어느 DB 에도 적용되지\n않은 표라 지금이 제일 싸고, 두면 analysis_id 여야 할 자리에 report_id 가 남아\n절반만 바뀐 상태가 된다. 인덱스·제약 이름도 같이 바꿨다.\n\n0002 리비전은 새 리비전을 쌓지 않고 직접 고쳤다. 아직 적용된 DB 가 없다.\nrevision id 0002 와 down_revision 0001 은 그대로다.\n\n**이름 말고는 아무것도 바꾸지 않았다.** 옛 파일에 같은 치환 규칙을 적용한 결과가\n현재 파일과 바이트 단위로 같은지 8개 파일 전부 확인했다. 스키마 구조·컬럼 타입·\n제약 종류·인덱스 구성은 그대로다.\n\n건드리지 않은 것:\n  - analyst_report* 와 0001_baseline_analyst_reports.py (다른 담당자 소유)\n  - backend 의 report / report_block / report_citation. 이것을 가리키는\n    주석·문자열 8곳은 치환에서 제외했다(특히 테스트의 collisions 집합)\n  - raw_json 안의 JSON 키(verdict, factors, sources …). 프롬프트 출력 계약이다\n  - 주석 속 한국어 \"보고서\" 표현\n\n31 passed / ruff 통과.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "b6a1e0b5b60dd846c5a4520bb51dfb2bbe990d77",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/b6a1e0b5b60dd846c5a4520bb51dfb2bbe990d77"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "ea27d0f52fe473be9b0cfdc7a1166a793694e6b6",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ea27d0f52fe473be9b0cfdc7a1166a793694e6b6",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/ea27d0f52fe473be9b0cfdc7a1166a793694e6b6"
+      }
+    ]
+  },
+  {
+    "sha": "0b0b8d13f27495ea926d8302fe0e2f55964e3b0b",
+    "node_id": "C_kwDOT-Ei5NoAKDBiMGI4ZDEzZjI3NDk1ZWE5MjZkODMwMmZlMGUyZjU1OTY0ZTNiMGI",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-22T22:52:31Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-22T22:52:31Z"
+      },
+      "message": "Merge branch 'develop' into feature/stock-move-report-load\n\ndevelop 에서 다른 팀원이 ai/ 를 alembic 으로 옮겼다(PR #23, 30997ee). 우리도\nea27d0f 에서 같은 일을 해서 alembic.ini / env.py / 0001 baseline /\ntest_migrations.py 가 전부 add/add 충돌이 났다.\n\n**alembic 인프라는 develop 것을 통째로 채택했다.** 우리 구현에 결함이 셋 있었다.\n\n  - version_table 을 안 정해 기본 alembic_version 을 썼다. develop 에서 backend 도\n    alembic 으로 갔고(backend/migrations/) 거기도 기본값이라, 우리 upgrade 가\n    backend 의 리비전 기록을 덮어쓴다. develop 쪽은 alembic_version_ai 로 갈랐다\n  - DB URL 을 config.set_main_option 으로 넘겨서 비밀번호에 % 가 있으면\n    ConfigParser 보간으로 깨진다. develop 쪽은 엔진에 직접 넘긴다\n  - include_object 거부목록이라 모델에서 지운 표를 영영 못 지운다(reflected 인데\n    metadata 에 없으면 제외되어 DROP 이 안 나온다). develop 쪽은 include_name\n    허용목록이라 이 경우가 검출된다\n\n그 위에 최소 수정만 얹었다.\n\n  - MANAGED_TABLES 에 stock_move_analysis* 네 표를 추가했다. 여기 없으면\n    autogenerate 와 alembic check 이 그 표를 아예 안 봐서, 마이그레이션이 없어도\n    \"변경 없음\" 이라고 한다\n  - 우리 리비전을 체인 끝에 다시 매달았다.\n    0002(down=0001) → 0019_stock_move_analysis(down=0018_source_category).\n    그대로 두면 0001 밑에 헤드가 둘이 되어 upgrade head 가 멈춘다.\n    README 가 예고한 빈 merge revision 대신 부모를 바꿨다 — 이 리비전은 어느 DB\n    에도 적용된 적이 없어서 안전하고, 하는 일 없는 리비전을 남길 이유가 없다\n  - 우리 오프라인 테스트는 test_migration_schema_sync.py 로 옮기고 대상을\n    stock_move_analysis* 네 표로 좁혔다. analyst_reports 는 0001 이 만든 뒤 0018 이\n    ALTER 로 고쳐서 CREATE TABLE 한 방과 비교할 수 없다. 단일헤드 검사는 develop 의\n    test_offline_sql_and_single_head 와 겹쳐서 뺐고, 대신 MANAGED_TABLES 누락을\n    잡는 검사를 넣었다\n  - test_migrations.py 의 HEAD 상수를 0019_stock_move_analysis 로 갱신했다\n  - README 의 \"팀 PR 통합\" 절을 실제로 한 것에 맞춰 고치고 분석 적재 절을 더했다.\n    진단 SQL 블록은 건드리지 않았다 — 그 테스트가 README 를 파싱해 실행한다\n\n209 passed / 16 skipped / ruff 통과.\ntest_telegram_setup.py 의 파일 권한 테스트 1건은 develop 에서 그대로 온 것이고\nWindows 에서만 실패한다(os.open 의 0o600 이 무시된다). 우리 변경과 무관하다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+      "tree": {
+        "sha": "e59c6a53b30f63df9bebbd95a344bb74dae2d403",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/e59c6a53b30f63df9bebbd95a344bb74dae2d403"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/0b0b8d13f27495ea926d8302fe0e2f55964e3b0b",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0b0b8d13f27495ea926d8302fe0e2f55964e3b0b",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/0b0b8d13f27495ea926d8302fe0e2f55964e3b0b",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0b0b8d13f27495ea926d8302fe0e2f55964e3b0b/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f"
+      },
+      {
+        "sha": "426361d98c5006d4694bf57b84578ccb7be1a831",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/426361d98c5006d4694bf57b84578ccb7be1a831",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/426361d98c5006d4694bf57b84578ccb7be1a831"
+      }
+    ]
+  },
+  {
+    "sha": "85e73cf3ed332cab06f566120e577bb264cc5f1e",
+    "node_id": "C_kwDOT-Ei5NoAKDg1ZTczY2YzZWQzMzJjYWIwNmY1NjYxMjBlNTc3YmIyNjRjYzVmMWU",
+    "commit": {
+      "author": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-22T22:59:54Z"
+      },
+      "committer": {
+        "name": "hakyeoung",
+        "email": "75005219+hakyeoung@users.noreply.github.com",
+        "date": "2026-09-22T23:04:19Z"
+      },
+      "message": "refactor(ai): 시스템 프롬프트 위치 통일",
+      "tree": {
+        "sha": "c10bd527feb72e60869a218b9c2d48dff51fae68",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/c10bd527feb72e60869a218b9c2d48dff51fae68"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/85e73cf3ed332cab06f566120e577bb264cc5f1e",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/85e73cf3ed332cab06f566120e577bb264cc5f1e",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/85e73cf3ed332cab06f566120e577bb264cc5f1e",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/85e73cf3ed332cab06f566120e577bb264cc5f1e/comments",
+    "author": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "0b0b8d13f27495ea926d8302fe0e2f55964e3b0b",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0b0b8d13f27495ea926d8302fe0e2f55964e3b0b",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/0b0b8d13f27495ea926d8302fe0e2f55964e3b0b"
+      }
+    ]
+  }
+]

@@ -1,0 +1,248 @@
+[
+  {
+    "sha": "c783f6679bb746d6f036e95dc19e74064c2f25ed",
+    "node_id": "C_kwDOT-Ei5NoAKGM3ODNmNjY3OWJiNzQ2ZDZmMDM2ZTk1ZGMxOWU3NDA2NGMyZjI1ZWQ",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "123060316+kmgvv23@users.noreply.github.com",
+        "date": "2026-09-22T04:38:37Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "123060316+kmgvv23@users.noreply.github.com",
+        "date": "2026-09-22T04:38:37Z"
+      },
+      "message": "feat(ai): 텔레그램 리포트 수집과 중복·접근 오류 처리\n\n- 계정별 로그인과 채널 접근 확인 지원\n- PDF 본문·메타데이터 추출 및 네이버 동일 PDF 제외\n- 재수집 시 기존 데이터 보존, 접근·수집 실패 처리\n- #18의 테이블과 Alembic 구조 유지",
+      "tree": {
+        "sha": "ec0fd25079de755bd61bb018263bbf4d54287c51",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/ec0fd25079de755bd61bb018263bbf4d54287c51"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/c783f6679bb746d6f036e95dc19e74064c2f25ed",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/c783f6679bb746d6f036e95dc19e74064c2f25ed",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/c783f6679bb746d6f036e95dc19e74064c2f25ed",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/c783f6679bb746d6f036e95dc19e74064c2f25ed/comments",
+    "author": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/30997eeb42dae9afb0f2d54135f4e03380e2ee5e"
+      }
+    ]
+  },
+  {
+    "sha": "0698611b4c6849c881b027aed42577c65403cf29",
+    "node_id": "C_kwDOT-Ei5NoAKDA2OTg2MTFiNGM2ODQ5Yzg4MWIwMjdhZWQ0MjU3N2M2NTQwM2NmMjk",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "123060316+kmgvv23@users.noreply.github.com",
+        "date": "2026-09-22T04:39:17Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "123060316+kmgvv23@users.noreply.github.com",
+        "date": "2026-09-22T04:39:17Z"
+      },
+      "message": "feat(ai): 검증 기반 텔레그램 리포트 요약 배치\n\n- OpenRouter·DeepSeek 기반 요약 생성\n- 생성 결과 검증과 재시도, 실패 응답 저장 차단\n- 동일 PDF 요약 재사용 및 동시 변경 보호",
+      "tree": {
+        "sha": "d7f7136b492b8d79739773ca46a1af65ef8cc910",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/d7f7136b492b8d79739773ca46a1af65ef8cc910"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/0698611b4c6849c881b027aed42577c65403cf29",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0698611b4c6849c881b027aed42577c65403cf29",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/0698611b4c6849c881b027aed42577c65403cf29",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0698611b4c6849c881b027aed42577c65403cf29/comments",
+    "author": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "c783f6679bb746d6f036e95dc19e74064c2f25ed",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/c783f6679bb746d6f036e95dc19e74064c2f25ed",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/c783f6679bb746d6f036e95dc19e74064c2f25ed"
+      }
+    ]
+  },
+  {
+    "sha": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "node_id": "C_kwDOT-Ei5NoAKDFlNDU4MDQ5ODVkMTQxNGQ0MDIxYmM0YjM3MjJlMWFlZjY4YTRmM2Y",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "123060316+kmgvv23@users.noreply.github.com",
+        "date": "2026-09-22T04:39:17Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "123060316+kmgvv23@users.noreply.github.com",
+        "date": "2026-09-22T04:39:17Z"
+      },
+      "message": "docs(ai): 텔레그램 수집·요약 실행 안내\n\n- 계정 설정과 수집·요약 실행 방법 정리\n- 중복 PDF 처리 및 OCR 제외 범위 명시\n- 현재 날짜 기준 유지와 향후 검토 방침 기록",
+      "tree": {
+        "sha": "d8b10ca56a7d7f5eb77ded22c31e430608ada42a",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/d8b10ca56a7d7f5eb77ded22c31e430608ada42a"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/1e45804985d1414d4021bc4b3722e1aef68a4f3f/comments",
+    "author": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "0698611b4c6849c881b027aed42577c65403cf29",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/0698611b4c6849c881b027aed42577c65403cf29",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/0698611b4c6849c881b027aed42577c65403cf29"
+      }
+    ]
+  }
+]

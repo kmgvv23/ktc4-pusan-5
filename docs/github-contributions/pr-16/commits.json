@@ -1,0 +1,128 @@
+[
+  {
+    "sha": "8f37517b7eb2d7f5e79cb8f8790d12e73669268b",
+    "node_id": "C_kwDOT-Ei5NoAKDhmMzc1MTdiN2ViMmQ3ZjVlNzljYjhmODc5MGQxMmU3MzY2OTI2OGI",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T05:37:45Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T05:37:45Z"
+      },
+      "message": "feat(ai): ai 패키지 골격 추가\n\n- pyproject.toml: 별도 uv 프로젝트. sqlalchemy[asyncio], asyncpg, pydantic-settings\n- core/config.py: database_url, http_timeout_sec. 기본값이 있어 .env 없이도 동작\n- core/database.py: 비동기 엔진, 세션 팩토리, DeclarativeBase, create_tables()\n- README.md: 폴더 용도와 실행 방법\n\nbackend 와 같은 Postgres 를 쓰되 프로젝트는 분리함. database_url 기본값은 backend 와 같음.\n폴더 구조는 backend/app/ 을 따랐고 Base 는 따로 둠.",
+      "tree": {
+        "sha": "b61009eedf596c695733b68918df09a72fcbabdd",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/b61009eedf596c695733b68918df09a72fcbabdd"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/8f37517b7eb2d7f5e79cb8f8790d12e73669268b",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/8f37517b7eb2d7f5e79cb8f8790d12e73669268b",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/8f37517b7eb2d7f5e79cb8f8790d12e73669268b",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/8f37517b7eb2d7f5e79cb8f8790d12e73669268b/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "633f7a77fb5ca6bd2b8173f067b608bb67c3b73e",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/633f7a77fb5ca6bd2b8173f067b608bb67c3b73e",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/633f7a77fb5ca6bd2b8173f067b608bb67c3b73e"
+      }
+    ]
+  },
+  {
+    "sha": "ce8d5edd615ebab45120a5edb64d581e599cd61b",
+    "node_id": "C_kwDOT-Ei5NoAKGNlOGQ1ZWRkNjE1ZWJhYjQ1MTIwYTVlZGI2NGQ1ODFlNTk5Y2Q2MWI",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T05:37:55Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T05:37:55Z"
+      },
+      "message": "feat(ai): 증권사 애널리스트 리포트 테이블 추가\n\n- models/analyst_report.py: analyst_reports 테이블\n- models/__init__.py: create_all 에 등록\n\n네이버 리포트 번호는 카테고리마다 따로 매겨짐. 종목분석에도 46078 번이 있고\n산업분석에도 46078 번이 있을 수 있어 번호만으로는 유일하지 않음.\n그래서 출처·카테고리·번호 셋을 묶어 자연키로 씀. 같은 기간을 다시 수집해도 행이 안 늘어남.\n\ncategory 는 company, industry, economy, market 네 가지. 네이버의 invest 와 daily 는\n구분이 되지 않아 market 으로 합침.",
+      "tree": {
+        "sha": "13e56c34e5450b48097de6fe1423d984a75eddcf",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/13e56c34e5450b48097de6fe1423d984a75eddcf"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/ce8d5edd615ebab45120a5edb64d581e599cd61b",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ce8d5edd615ebab45120a5edb64d581e599cd61b",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/ce8d5edd615ebab45120a5edb64d581e599cd61b",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ce8d5edd615ebab45120a5edb64d581e599cd61b/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "8f37517b7eb2d7f5e79cb8f8790d12e73669268b",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/8f37517b7eb2d7f5e79cb8f8790d12e73669268b",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/8f37517b7eb2d7f5e79cb8f8790d12e73669268b"
+      }
+    ]
+  },
+  {
+    "sha": "74d1d8c340d83028cba5ba5fed3f709064ff5a1e",
+    "node_id": "C_kwDOT-Ei5NoAKDc0ZDFkOGMzNDBkODMwMjhjYmE1YmE1ZmVkM2Y3MDkwNjRmZjVhMWU",
+    "commit": {
+      "author": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T05:38:04Z"
+      },
+      "committer": {
+        "name": "김민규",
+        "email": "kmg@MacBookAir.local",
+        "date": "2026-09-16T05:38:04Z"
+      },
+      "message": "test(ai): 표 설계 테스트 추가\n\n- tests/test_analyst_report_model.py: 표 이름, 자연키, NULL 허용, 인덱스\n\nDB 없이 메타데이터만 봄. 표 이름과 자연키는 다른 코드가 참조하므로 바뀌면 여기서 걸림.",
+      "tree": {
+        "sha": "3837d69365b513a2438cd3c71f775cef3d6d1c36",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/3837d69365b513a2438cd3c71f775cef3d6d1c36"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/74d1d8c340d83028cba5ba5fed3f709064ff5a1e",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/74d1d8c340d83028cba5ba5fed3f709064ff5a1e",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/74d1d8c340d83028cba5ba5fed3f709064ff5a1e",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/74d1d8c340d83028cba5ba5fed3f709064ff5a1e/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "ce8d5edd615ebab45120a5edb64d581e599cd61b",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ce8d5edd615ebab45120a5edb64d581e599cd61b",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/ce8d5edd615ebab45120a5edb64d581e599cd61b"
+      }
+    ]
+  }
+]

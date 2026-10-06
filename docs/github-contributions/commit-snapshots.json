@@ -1,0 +1,414 @@
+[
+  {
+    "sha": "0124311bd7f0442ff6d9f36f5024ac829f3b0c79",
+    "metadata": "0124311bd7f0442ff6d9f36f5024ac829f3b0c79\nfromzero\nfromzero000@gmail.com\n2026-09-14T22:21:48+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-14T22:21:48+09:00\nMerge remote-tracking branch 'origin/develop' into feature/news-store"
+  },
+  {
+    "sha": "034674624a71f0cc630754091a8911c81cbe5396",
+    "metadata": "034674624a71f0cc630754091a8911c81cbe5396\nfromzero000\n168260621+fromzero000@users.noreply.github.com\n2026-09-19T09:28:29+09:00\nGitHub\nnoreply@github.com\n2026-09-19T09:28:29+09:00\nMerge pull request #21 from kakaotechcampus-4/refactor/fe-auth-chart\n\n[FE] refactor: OAuth State, AuthProvider 에러 분기, 차트 리렌더링 수정"
+  },
+  {
+    "sha": "0698611b4c6849c881b027aed42577c65403cf29",
+    "metadata": "0698611b4c6849c881b027aed42577c65403cf29\n김민규\n123060316+kmgvv23@users.noreply.github.com\n2026-09-22T13:39:17+09:00\n김민규\n123060316+kmgvv23@users.noreply.github.com\n2026-09-22T13:39:17+09:00\nfeat(ai): 검증 기반 텔레그램 리포트 요약 배치\n\n- OpenRouter·DeepSeek 기반 요약 생성\n- 생성 결과 검증과 재시도, 실패 응답 저장 차단\n- 동일 PDF 요약 재사용 및 동시 변경 보호"
+  },
+  {
+    "sha": "098eba7a66cf9bd3fe782245b5043befd1974857",
+    "metadata": "098eba7a66cf9bd3fe782245b5043befd1974857\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:44+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:44+09:00\nfeat(frontend): 홈에 마켓 인사이트 섹션 추가"
+  },
+  {
+    "sha": "099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "metadata": "099247a9f47e263c39ee0eeaabb7a948d0be4556\n김민규\nkmg@MacBookAir.local\n2026-09-23T01:07:16+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-23T01:07:16+09:00\nfix: 원본 분류 복구 실패 시 건수와 리포트 ID 표시\n\nSQL 예외에 전체 실패 건수와 최대 5개 ID를 포함하고, 롤백 후 전체 실패 행을 확인하는 조회문을 README에 추가합니다. SQL 출력 모드와 데이터 롤백을 유지하며 PostgreSQL 테스트 포함 34개 및 Ruff 검사를 통과했습니다."
+  },
+  {
+    "sha": "0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f",
+    "metadata": "0afc6c6eb02bf7a2fa9f4609932399b4dec94a4f\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-22T19:30:56+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-22T19:30:56+09:00\nrefactor(ai): 종목 변동 분석 표 이름을 analysis 로 변경\n\nPR 리뷰에서 정한 이름 규칙을 따른다.\n\n  analyst_report       증권사 애널리스트가 쓴 원문. 남이 쓴 것\n  stock_move_analysis  우리가 생성한 종목 변동 요인 분석\n\nreport 라는 말이 둘 다를 가리켜 구분이 안 됐다. brief 는 쓰지 않았다 —\n나중에 \"왜 올랐나\" 를 한두 줄로 보여주는 기능이 생기면 그게 brief 인데,\nfactors·background·terms 까지 붙은 지금 산출물이 그 이름을 선점하면 안 된다.\n\n표 이름은 복수형 관례(analyst_reports)를 따라 stock_move_analyses 로 했다.\n자식 표의 FK 컬럼 report_id 도 analysis_id 로 바꿨다. 아직 어느 DB 에도 적용되지\n않은 표라 지금이 제일 싸고, 두면 analysis_id 여야 할 자리에 report_id 가 남아\n절반만 바뀐 상태가 된다. 인덱스·제약 이름도 같이 바꿨다.\n\n0002 리비전은 새 리비전을 쌓지 않고 직접 고쳤다. 아직 적용된 DB 가 없다.\nrevision id 0002 와 down_revision 0001 은 그대로다.\n\n**이름 말고는 아무것도 바꾸지 않았다.** 옛 파일에 같은 치환 규칙을 적용한 결과가\n현재 파일과 바이트 단위로 같은지 8개 파일 전부 확인했다. 스키마 구조·컬럼 타입·\n제약 종류·인덱스 구성은 그대로다.\n\n건드리지 않은 것:\n  - analyst_report* 와 0001_baseline_analyst_reports.py (다른 담당자 소유)\n  - backend 의 report / report_block / report_citation. 이것을 가리키는\n    주석·문자열 8곳은 치환에서 제외했다(특히 테스트의 collisions 집합)\n  - raw_json 안의 JSON 키(verdict, factors, sources …). 프롬프트 출력 계약이다\n  - 주석 속 한국어 \"보고서\" 표현\n\n31 passed / ruff 통과.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "0b0b8d13f27495ea926d8302fe0e2f55964e3b0b",
+    "metadata": "0b0b8d13f27495ea926d8302fe0e2f55964e3b0b\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-23T07:52:31+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-23T07:52:31+09:00\nMerge branch 'develop' into feature/stock-move-report-load\n\ndevelop 에서 다른 팀원이 ai/ 를 alembic 으로 옮겼다(PR #23, 30997ee). 우리도\nea27d0f 에서 같은 일을 해서 alembic.ini / env.py / 0001 baseline /\ntest_migrations.py 가 전부 add/add 충돌이 났다.\n\n**alembic 인프라는 develop 것을 통째로 채택했다.** 우리 구현에 결함이 셋 있었다.\n\n  - version_table 을 안 정해 기본 alembic_version 을 썼다. develop 에서 backend 도\n    alembic 으로 갔고(backend/migrations/) 거기도 기본값이라, 우리 upgrade 가\n    backend 의 리비전 기록을 덮어쓴다. develop 쪽은 alembic_version_ai 로 갈랐다\n  - DB URL 을 config.set_main_option 으로 넘겨서 비밀번호에 % 가 있으면\n    ConfigParser 보간으로 깨진다. develop 쪽은 엔진에 직접 넘긴다\n  - include_object 거부목록이라 모델에서 지운 표를 영영 못 지운다(reflected 인데\n    metadata 에 없으면 제외되어 DROP 이 안 나온다). develop 쪽은 include_name\n    허용목록이라 이 경우가 검출된다\n\n그 위에 최소 수정만 얹었다.\n\n  - MANAGED_TABLES 에 stock_move_analysis* 네 표를 추가했다. 여기 없으면\n    autogenerate 와 alembic check 이 그 표를 아예 안 봐서, 마이그레이션이 없어도\n    \"변경 없음\" 이라고 한다\n  - 우리 리비전을 체인 끝에 다시 매달았다.\n    0002(down=0001) → 0019_stock_move_analysis(down=0018_source_category).\n    그대로 두면 0001 밑에 헤드가 둘이 되어 upgrade head 가 멈춘다.\n    README 가 예고한 빈 merge revision 대신 부모를 바꿨다 — 이 리비전은 어느 DB\n    에도 적용된 적이 없어서 안전하고, 하는 일 없는 리비전을 남길 이유가 없다\n  - 우리 오프라인 테스트는 test_migration_schema_sync.py 로 옮기고 대상을\n    stock_move_analysis* 네 표로 좁혔다. analyst_reports 는 0001 이 만든 뒤 0018 이\n    ALTER 로 고쳐서 CREATE TABLE 한 방과 비교할 수 없다. 단일헤드 검사는 develop 의\n    test_offline_sql_and_single_head 와 겹쳐서 뺐고, 대신 MANAGED_TABLES 누락을\n    잡는 검사를 넣었다\n  - test_migrations.py 의 HEAD 상수를 0019_stock_move_analysis 로 갱신했다\n  - README 의 \"팀 PR 통합\" 절을 실제로 한 것에 맞춰 고치고 분석 적재 절을 더했다.\n    진단 SQL 블록은 건드리지 않았다 — 그 테스트가 README 를 파싱해 실행한다\n\n209 passed / 16 skipped / ruff 통과.\ntest_telegram_setup.py 의 파일 권한 테스트 1건은 develop 에서 그대로 온 것이고\nWindows 에서만 실패한다(os.open 의 0o600 이 무시된다). 우리 변경과 무관하다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "0b3d94e589605f637481bb036e2a955dc564ee12",
+    "metadata": "0b3d94e589605f637481bb036e2a955dc564ee12\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:05+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:05+09:00\nfeat(frontend): 종목 상세 PRICE ACTION 캔들·거래량 차트 섹션 추가"
+  },
+  {
+    "sha": "0d94412ec87748d94c739b6d64e2569340dd1879",
+    "metadata": "0d94412ec87748d94c739b6d64e2569340dd1879\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:31+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:31+09:00\nfeat(frontend): 종목 상세 PRICE ACTION·AT A GLANCE 카드 높이 맞춤"
+  },
+  {
+    "sha": "126e1845f28a2cff6adc18df124dd496b3c47cff",
+    "metadata": "126e1845f28a2cff6adc18df124dd496b3c47cff\nchoiJieun\neaee20171@gmail.com\n2026-09-18T21:18:01+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T21:18:01+09:00\nrefactor: user upsert 동시성 처리"
+  },
+  {
+    "sha": "13e41b2cabf7dc1bb8941f6a46aca38b36beac2c",
+    "metadata": "13e41b2cabf7dc1bb8941f6a46aca38b36beac2c\nchoiJieun\neaee20171@gmail.com\n2026-09-18T15:45:31+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T15:45:31+09:00\nrefactor: GET /api/auth/me 실패 분기 처리"
+  },
+  {
+    "sha": "19e37ebcce34f83f2807aaa16593c06fcfe1c83f",
+    "metadata": "19e37ebcce34f83f2807aaa16593c06fcfe1c83f\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:58:26+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:53:44+09:00\nchore: 카카오 로그인 목업 제거\n\n실제 fetch 연동으로 대체되어 더 이상 참조되지 않는 mockKakaoLogin/\nmockKakaoLoginError를 삭제한다."
+  },
+  {
+    "sha": "1ba44d44e732be9c87adc8e5725551457ce673a4",
+    "metadata": "1ba44d44e732be9c87adc8e5725551457ce673a4\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T14:44:06+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T14:44:06+09:00\nfeat(ai): 보고서 JSON 파싱·정규화·적재 리포지토리 추가\n\nruns/<타임스탬프>/parsed/*.json 파일을 읽어 넣는다. 파일은 2단이다 — 바깥은\n실험 파이프라인의 실행 기록 래퍼고 보고서 JSON 은 final_text 안에 문자열로\n들어 있다. 래퍼에서는 final_text / json_status / schema_problems / is_error /\nasked_question 다섯 개만 읽고 나머지는 흘려보낸다. 래퍼는 실험 환경 산출물이라\n필드가 늘거나 주는데 모르는 필드에 걸려 죽으면 적재가 통째로 멈춘다.\n\n래퍼의 verdict / n_factors / n_sources 는 저장하지 않는다. final_text 안의\n값을 다시 센 것이라 두 군데 두면 어긋났을 때 무엇을 믿을지 문제가 된다.\n\nbackground 항목의 문자열·객체 혼용은 적재가 흡수해 {text, watch} 로 편다.\n프롬프트는 검증 스크립트와 짝이라 못 고치므로 불편한 구조를 여기서 받는다.\n\nfactors 4 / terms 8 / background 전체 6·칸당 3 초과는 잘라내지 않고 로그에만\n남긴다. 적재가 말없이 자르면 실행 점검 스크립트의 상한 검사가 영원히 통과한다.\n\n근거 검증은 하지 않는다. verify_status 는 인자로 받고 기본값은 not_verified 다.\n검증기 연결은 후속 PR 이다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "1c6c524cf21721de0d2912d09d844a6c6ce6343d",
+    "metadata": "1c6c524cf21721de0d2912d09d844a6c6ce6343d\nchoiJieun\neaee20171@gmail.com\n2026-09-16T06:35:56+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T06:35:56+09:00\nfeat(frontend): 주요 지수 카드를 2행 3열로 재배치"
+  },
+  {
+    "sha": "1d2a7facd0e68ceb5c19a33190c0f576ab1a42dc",
+    "metadata": "1d2a7facd0e68ceb5c19a33190c0f576ab1a42dc\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:13+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:13+09:00\nfeat(frontend): 종목 상세 수급 동향·재무실적 섹션 추가"
+  },
+  {
+    "sha": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "metadata": "1e45804985d1414d4021bc4b3722e1aef68a4f3f\n김민규\n123060316+kmgvv23@users.noreply.github.com\n2026-09-22T13:39:17+09:00\n김민규\n123060316+kmgvv23@users.noreply.github.com\n2026-09-22T13:39:17+09:00\ndocs(ai): 텔레그램 수집·요약 실행 안내\n\n- 계정 설정과 수집·요약 실행 방법 정리\n- 중복 PDF 처리 및 OCR 제외 범위 명시\n- 현재 날짜 기준 유지와 향후 검토 방침 기록"
+  },
+  {
+    "sha": "20a64def447fbf38442776a9ae3bc8e04880cda8",
+    "metadata": "20a64def447fbf38442776a9ae3bc8e04880cda8\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:16+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:16+09:00\nfeat(backend): 카카오 로그인용 User 모델 추가"
+  },
+  {
+    "sha": "257fe226d0d917e8f7b448b0f9ade49e45a29eab",
+    "metadata": "257fe226d0d917e8f7b448b0f9ade49e45a29eab\njiw0nahn\nwldnjs7805@naver.com\n2026-09-08T23:56:33+09:00\njiw0nahn\nwldnjs7805@naver.com\n2026-09-11T16:59:58+09:00\nfeat(backend): DART·ECOS API 호출 클라이언트 추가\n\nDART 공시 목록/고유번호 매핑, ECOS 통계(기준금리·환율·CPI) 호출 함수 작성. 인증키는 .env로 분리하고 .env.example만 커밋."
+  },
+  {
+    "sha": "2ddba220139014e9957c8d5b2cbbf97c732a677a",
+    "metadata": "2ddba220139014e9957c8d5b2cbbf97c732a677a\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:36+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:36+09:00\nfeat(frontend): 홈에 외국인·기관 동향 및 섹터 순위 섹션 추가"
+  },
+  {
+    "sha": "2ecac2d1e024815d0c3ec285fbec61e0694332ed",
+    "metadata": "2ecac2d1e024815d0c3ec285fbec61e0694332ed\nfromzero000\n168260621+fromzero000@users.noreply.github.com\n2026-09-14T22:25:49+09:00\nGitHub\nnoreply@github.com\n2026-09-14T22:25:49+09:00\nMerge pull request #9 from kakaotechcampus-4/feature/news-store\n\n[BE] feature: 도커 DB 세팅"
+  },
+  {
+    "sha": "30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+    "metadata": "30997eeb42dae9afb0f2d54135f4e03380e2ee5e\n김민규\nkmg@MacBookAir.local\n2026-09-22T04:31:26+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-22T04:31:26+09:00\nrefactor: AI 수집기의 스키마 관리를 Alembic으로 전환\n\n수집기의 자동 테이블 생성을 제거하고 source_category와 자연키 변경을 마이그레이션으로 관리합니다. 기존 데이터의 원본 분류를 복구하며, 복구 불가 또는 구 자연키 충돌 시 변경을 중단합니다.\n\nAI 테이블 비교 범위와 버전 테이블을 분리하고 기존 DB 전환 절차를 문서화했습니다. PostgreSQL 테스트 포함 33개와 Ruff 검사를 통과했습니다."
+  },
+  {
+    "sha": "330dfb0627bf70a087c71b6a2d11ad2788eb243f",
+    "metadata": "330dfb0627bf70a087c71b6a2d11ad2788eb243f\nfromzero\nfromzero000@gmail.com\n2026-09-08T23:52:59+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-09T14:46:20+09:00\nfeat(backend): 뉴스 수집 모듈 추가 (네이버 API HUB, 본문 추출, 정제)"
+  },
+  {
+    "sha": "3462572b76b598c989b6346027a94e3422c4966e",
+    "metadata": "3462572b76b598c989b6346027a94e3422c4966e\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:18:37+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:18:37+09:00\nMerge branch 'develop' into feature/login-backend"
+  },
+  {
+    "sha": "3479498d75e2f61ddfe965983d07429fdf25b01f",
+    "metadata": "3479498d75e2f61ddfe965983d07429fdf25b01f\nchoiJieun\neaee20171@gmail.com\n2026-09-16T13:27:40+09:00\nGitHub\nnoreply@github.com\n2026-09-16T13:27:40+09:00\nMerge pull request #12 from kakaotechcampus-4/feature/db-스키마-스켈레톤\n\n[BE] feature: AI 리포트 저장용 DB 스키마 초안 추가 (channel/source_card/report/report_citation)"
+  },
+  {
+    "sha": "359fa963497cbd62eb71ea79d6aa547ec75c56d2",
+    "metadata": "359fa963497cbd62eb71ea79d6aa547ec75c56d2\nchoiJieun\neaee20171@gmail.com\n2026-09-16T14:55:25+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T14:55:25+09:00\nfeat(frontend): 재무 추이·건전성·분기별 투자 지표 mock 데이터 추가"
+  },
+  {
+    "sha": "38a7db2b485140e600d1db9961cd39857b876fe3",
+    "metadata": "38a7db2b485140e600d1db9961cd39857b876fe3\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:12+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:12+09:00\nfeat(backend): 카카오 로그인에 필요한 의존성과 설정 추가\n\npyjwt 추가, kakao/jwt 관련 Settings 필드 추가, 테스트에서 DB 커넥션\n풀이 이벤트 루프마다 깨지지 않도록 pytest-asyncio 루프 스코프를\nsession으로 고정, FastAPI Depends 관용 패턴에 대한 ruff B008 무시"
+  },
+  {
+    "sha": "38cc898c3f27b953ba5fc254cd04d26d27515f73",
+    "metadata": "38cc898c3f27b953ba5fc254cd04d26d27515f73\nchoiJieun\neaee20171@gmail.com\n2026-09-18T09:09:21+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T09:09:21+09:00\nrefactor: header가 연 stacking context 내부에서만 z-index 비교 문제 수정"
+  },
+  {
+    "sha": "3aad3ec14b8db56cdb5becbd7d7e3b9aa64fba5d",
+    "metadata": "3aad3ec14b8db56cdb5becbd7d7e3b9aa64fba5d\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:20:10+09:00\nGitHub\nnoreply@github.com\n2026-09-16T15:20:10+09:00\nMerge pull request #14 from kakaotechcampus-4/feature/login-frontend\n\n[FE] 소셜 로그인 api 연동"
+  },
+  {
+    "sha": "3c2f4a2120cfdd23b9d1a73343dedc637dae496a",
+    "metadata": "3c2f4a2120cfdd23b9d1a73343dedc637dae496a\nfromzero\nfromzero000@gmail.com\n2026-09-12T11:52:44+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-12T11:52:44+09:00\nfeat(backend): 뉴스 수집 결과를 DB에 저장하는 컬렉터 추가\n\n- models/news.py: news 테이블. url unique, published_at 은 timestamptz\n- repositories/news.py: on_conflict_do_nothing 으로 중복 수\n- collectors/news.py: naver 검색 → 본문 추출 → 저장. python -m 으로 실행\n- main.py: app.models import 로 create_all 에 모델 등록\n\nAI 분석은 아직 없다. 컬렉터에서 수집과 저장 사이에 붙일 자리"
+  },
+  {
+    "sha": "41bab650883395301b262b3e4cf7e4e7e3d8c881",
+    "metadata": "41bab650883395301b262b3e4cf7e4e7e3d8c881\njiw0nahn\nwldnjs7805@naver.com\n2026-09-18T13:50:52+09:00\njiw0nahn\nwldnjs7805@naver.com\n2026-09-18T13:52:58+09:00\nrefactor(backend): report_citation의 block_id/report_id 불일치를 복합 FK로 막기"
+  },
+  {
+    "sha": "4ec652a7ccfdda0117eac84feb057da1453da034",
+    "metadata": "4ec652a7ccfdda0117eac84feb057da1453da034\nfromzero\nfromzero000@gmail.com\n2026-09-16T12:17:58+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-16T12:17:58+09:00\nfeat(frontend): 개념 상세 페이지 추가"
+  },
+  {
+    "sha": "56fda871127188b8ba2eacb5feb7cb853eee02d5",
+    "metadata": "56fda871127188b8ba2eacb5feb7cb853eee02d5\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T14:44:05+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T14:44:05+09:00\nfeat(ai): 종목 변동 요인 보고서 테이블 추가\n\n우리가 LLM 으로 생성한 보고서를 담는다. stock_move_report 접두사로 묶어\nanalyst_reports(증권사 원문) 및 backend 의 report / report_block /\nreport_citation 과 같은 Postgres 에서 이름이 겹치지 않게 했다. create_all 은\n이미 있는 표를 조용히 건너뛰어서, 겹치면 어긋난 채로 돈다.\n\n  stock_move_reports                본체. 한 행 = 보고서 한 회차\n  stock_move_report_factors         원인\n  stock_move_report_factor_sources  원인별 출처\n  stock_move_report_reviews         검수 판정. 이번엔 표만 만들고 쓰지 않는다\n\nINSERT only 다. 프롬프트가 \"이전 회차를 언급하지 않는다\" 고 규정해 각 회차가\n독립 문서이므로 자연키 (ticker, target_date, as_of) 에 UNIQUE 를 걸지 않았다.\n\n검증 실패·스키마 위반 건도 버리지 않고 상태만 달아 적재하므로 정규화 칼럼은\n전부 nullable 이고 raw_json 만 NOT NULL 이다. LLM 이 채우는 칼럼에 ENUM·CHECK 를\n걸지 않은 이유도 같다 — 값이 어긋난 행이 거절되면 정작 원인 분석에 제일 필요한\n행만 못 들어온다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "583bb448e94ceb4c18e17f6dd090634b91bfb3a5",
+    "metadata": "583bb448e94ceb4c18e17f6dd090634b91bfb3a5\nfromzero\nfromzero000@gmail.com\n2026-09-16T12:17:50+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-16T12:17:50+09:00\nfeat(backend): 개념 페이지 API와 시드 데이터 추가"
+  },
+  {
+    "sha": "58e3954f8ca45a8169c8c8f16c42182b6f9322f9",
+    "metadata": "58e3954f8ca45a8169c8c8f16c42182b6f9322f9\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:58:01+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:53:44+09:00\nfeat: 로그인 상태 관리용 AuthContext 추가\n\nuseAuth(컨텍스트/훅)와 AuthProvider(컴포넌트)를 분리해 추가한다.\n파일을 나눈 건 react-refresh/only-export-components 규칙 때문이고,\nAuthProvider는 마운트 시 GET /api/auth/me로 세션을 복원해\n새로고침해도 로그인 상태가 유지되게 한다."
+  },
+  {
+    "sha": "59199e136f75d0dfff310090cf5166f946276abc",
+    "metadata": "59199e136f75d0dfff310090cf5166f946276abc\nfromzero\nfromzero000@gmail.com\n2026-09-14T22:21:28+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-14T22:21:28+09:00\nfix(backend): 머지 충돌 해결\n\n- naver.search: httpx 상태 오류와 연결 오류를 NaverNewsError 로 변환\n- test_naver: 401 응답 시 NaverNewsError 테스트 추가\n- main.py: develop 병합"
+  },
+  {
+    "sha": "5cce13ab776ebf1536567de984bc2207db816cc1",
+    "metadata": "5cce13ab776ebf1536567de984bc2207db816cc1\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:41+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:41+09:00\nfeat(backend): 카카오 로그인 API 라우터 추가 (/api/auth/kakao, /me, /logout)"
+  },
+  {
+    "sha": "5fddf8bc44b90b6bf86cea575e1d93fdc844d2f8",
+    "metadata": "5fddf8bc44b90b6bf86cea575e1d93fdc844d2f8\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:58:11+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:53:44+09:00\nfeat: 카카오 인가 페이지로 리다이렉트하는 로그인 연동\n\nclient_id/redirect_uri(env)로 카카오 인가 URL을 만드는 buildKakaoAuthUrl을\n추가하고, LoginModal의 로그인 버튼이 목업 대신 이 URL로 즉시 리다이렉트하도록\n바꾼다. 페이지를 벗어나므로 모달 내부의 로딩/에러 상태는 제거한다."
+  },
+  {
+    "sha": "633f7a77fb5ca6bd2b8173f067b608bb67c3b73e",
+    "metadata": "633f7a77fb5ca6bd2b8173f067b608bb67c3b73e\n안지원\n128668708+jiw0nahn@users.noreply.github.com\n2026-09-15T18:19:45+09:00\nGitHub\nnoreply@github.com\n2026-09-15T18:19:45+09:00\nMerge pull request #11 from kakaotechcampus-4/feature/dart-ecos-api-client\n\n[BE] feature: DART·ECOS API 호출 클라이언트 추가"
+  },
+  {
+    "sha": "6462cdd561ac4bc88588ee62b2cffd3e23402ffe",
+    "metadata": "6462cdd561ac4bc88588ee62b2cffd3e23402ffe\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:49:13+09:00\nGitHub\nnoreply@github.com\n2026-09-16T15:49:13+09:00\nMerge branch 'develop' into feature/stock-info-ui"
+  },
+  {
+    "sha": "669c4b5a5d99e4e2554338e03a0d5dbba83fa846",
+    "metadata": "669c4b5a5d99e4e2554338e03a0d5dbba83fa846\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:00:23+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:53:44+09:00\nchore: 카카오 로그인 env 예시 파일 추가\n\nVITE_API_BASE_URL/VITE_KAKAO_CLIENT_ID/VITE_KAKAO_REDIRECT_URI 키 목록만\n담은 .env.example을 추가한다."
+  },
+  {
+    "sha": "66bb5c74ca30730f7f8affc0e260310f8dc3ec42",
+    "metadata": "66bb5c74ca30730f7f8affc0e260310f8dc3ec42\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:22+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:22+09:00\nfeat(frontend): 종목 상세 AI 투자 분석 보고서로 브리핑 대체"
+  },
+  {
+    "sha": "68243158dd479c89ba485f360128bff7b7b1b293",
+    "metadata": "68243158dd479c89ba485f360128bff7b7b1b293\nchoiJieun\neaee20171@gmail.com\n2026-09-14T01:43:41+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-14T01:43:41+09:00\nfeature: 소셜 로그인 ui"
+  },
+  {
+    "sha": "6a0fe925061b1bb248413cd9c00bec6fcb95aefe",
+    "metadata": "6a0fe925061b1bb248413cd9c00bec6fcb95aefe\nfromzero\nfromzero000@gmail.com\n2026-09-16T12:18:20+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-16T12:18:20+09:00\nMerge remote-tracking branch 'origin/develop' into feature/concepts"
+  },
+  {
+    "sha": "6bb74ef56f0ef3b7238a4be85d0a9ff258e7cda2",
+    "metadata": "6bb74ef56f0ef3b7238a4be85d0a9ff258e7cda2\nchoiJieun\neaee20171@gmail.com\n2026-09-18T10:06:43+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T10:06:43+09:00\nrefactor: PriceVolumeChart 차트 재생성 비용 줄이기"
+  },
+  {
+    "sha": "6d9aedc699fece87b93adf00747eca53aa8cf184",
+    "metadata": "6d9aedc699fece87b93adf00747eca53aa8cf184\nfromzero\nfromzero000@gmail.com\n2026-09-09T14:46:57+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-09T14:46:57+09:00\nchore(backend): .gitkeep 제거"
+  },
+  {
+    "sha": "6f05f5b4e14c1fde30539e73e4726cada12ac6b0",
+    "metadata": "6f05f5b4e14c1fde30539e73e4726cada12ac6b0\n김민규\nkmg@MacBookAir.local\n2026-09-16T15:20:36+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-16T15:20:36+09:00\nfeat(ai): PDF 본문 추출 추가\n\n- services/analyst/pdf.py: PDF 에서 텍스트 뽑기\n- tests/test_analyst_pdf.py: 쪽수 계산, 폴백 동작\n- pyproject: pypdf 의존성 추가\n\n추출 방식: pdftotext -raw 사용. -layout 은 사이드바가 본문 문장 중간에 끼어듦\n실패 판정: 종료코드 대신 글자수로 봄. 못 읽고도 0 을 주는 경우가 있음\n폴백: pdftotext 가 빈 결과를 주면 pypdf 로 다시 시도"
+  },
+  {
+    "sha": "6fcc713e20a2de1f620939fd19d375070f620541",
+    "metadata": "6fcc713e20a2de1f620939fd19d375070f620541\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:58:22+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:53:44+09:00\nfeat: AuthProvider와 카카오 콜백 라우트를 앱에 연결\n\nApp을 AuthProvider로 감싸고 useAuth()의 상태로 헤더 로그인/로그아웃을\n구동하도록 바꾼다. /oauth/kakao/callback 라우트를 추가한다."
+  },
+  {
+    "sha": "704fb442b056b2915dab7719d08221ac5f636364",
+    "metadata": "704fb442b056b2915dab7719d08221ac5f636364\nfromzero\nfromzero000@gmail.com\n2026-09-12T12:25:27+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-12T12:25:27+09:00\ntest(backend): 뉴스 수집·정제·저장 테스트 추가\n\n- test_naver.py: 파싱과 검색 호출 (respx)\n- test_content.py: 본문 추출 실패 처리\n- test_clean.py: 바이라인·저작권 제거, 길이 상한\n- test_repository.py: 중복 URL 건너뜀, 시간대 보존 (실제 DB, 롤백)\n- test_collector.py: NewsItem → 행 변환\n- tests/__init__.py 추가로 pytest 에서 app 패키지 인식\n- main.py import 정렬"
+  },
+  {
+    "sha": "720399e2eb62bd0382600eb3934d182614536602",
+    "metadata": "720399e2eb62bd0382600eb3934d182614536602\n김민규\nkmg@MacBookAir.local\n2026-09-16T15:21:00+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-16T17:09:37+09:00\nfeat(ai): 리포트 수집 컬렉터 추가\n\n- repositories/analyst_report.py: DB 읽기·쓰기. upsert_analyst_reports, known_ids\n- collectors/analyst_report.py: 수집 전체를 지휘. python -m 으로 실행\n\n    uv run python -m app.collectors.analyst_report --days 7\n\n증분 수집: 이미 받아둔 리포트는 상세를 안 부름. 건당 2회 호출이라 안 거르면 매번 다시 받음\n멱등성: 자연키로 upsert. 같은 기간을 다시 돌려도 행이 안 늘어남\n본문 보호: 이미 뽑아둔 본문을 빈 값으로 덮어쓰지 않음\n부분 저장: 카테고리 단위로 커밋해서 중간에 끊겨도 앞은 남음\n날짜 기준: 네이버가 주는 날짜가 한국 장 기준이라 수집 범위를 KST 로 고정"
+  },
+  {
+    "sha": "74d1d8c340d83028cba5ba5fed3f709064ff5a1e",
+    "metadata": "74d1d8c340d83028cba5ba5fed3f709064ff5a1e\n김민규\nkmg@MacBookAir.local\n2026-09-16T14:38:04+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-16T14:38:04+09:00\ntest(ai): 표 설계 테스트 추가\n\n- tests/test_analyst_report_model.py: 표 이름, 자연키, NULL 허용, 인덱스\n\nDB 없이 메타데이터만 봄. 표 이름과 자연키는 다른 코드가 참조하므로 바뀌면 여기서 걸림."
+  },
+  {
+    "sha": "76ce73869b79c0ca9f37eafdd7c536772dfe71a8",
+    "metadata": "76ce73869b79c0ca9f37eafdd7c536772dfe71a8\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:26+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:26+09:00\nfeat(backend): 자체 세션 발급용 JWT 유틸 추가"
+  },
+  {
+    "sha": "7a78ffe5679e06269297ef97b48cef40ba06335d",
+    "metadata": "7a78ffe5679e06269297ef97b48cef40ba06335d\nchoiJieun\neaee20171@gmail.com\n2026-09-18T15:04:56+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T15:04:56+09:00\nrefactor: reportStatus state를 StockInsightSection으로 이동"
+  },
+  {
+    "sha": "7ad9cd556888ba59ccb3e6391c837e148c7604cf",
+    "metadata": "7ad9cd556888ba59ccb3e6391c837e148c7604cf\nfromzero\nfromzero000@gmail.com\n2026-09-14T21:14:46+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-14T21:14:46+09:00\nMerge remote-tracking branch 'origin/develop' into feature/news-store\n\n# Conflicts:\n#\tbackend/app/main.py"
+  },
+  {
+    "sha": "7cbda7e455cdcc622cf59f03e14d0e6321147d30",
+    "metadata": "7cbda7e455cdcc622cf59f03e14d0e6321147d30\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:22+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:22+09:00\nfeat(backend): 카카오 인가 코드 교환·사용자 정보 조회 서비스 추가"
+  },
+  {
+    "sha": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "metadata": "7e3f0f3106ea45c0c5086804b95fa4f734e33739\n김민규\nkmg@MacBookAir.local\n2026-09-18T11:50:57+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-18T11:50:57+09:00\nfix(ai): 자연키에 원본 카테고리를 쓰도록 수정\n\n- models/analyst_report.py: source_category 칼럼 추가. 자연키를 그걸로 교체\n- services/analyst/schema.py: AnalystReportItem 에 source_category\n- services/analyst/naver.py: invest·daily 를 market 으로 합침. 상세 URL 은 원본 구분으로\n- repositories/analyst_report.py: known_ids·upsert 기준을 source_category 로\n- collectors/analyst_report.py: 행에 source_category 포함\n- tests: 자연키 2개, 충돌 회귀 2개\n\n문제: researchId 가 네이버 카테고리 안에서만 유일한데 자연키에 category 를 씀.\n      invest·daily 를 market 으로 합치면 서로 다른 리포트가 같은 키가 됨\n실측: invest 2026-01-16 자 37550 과 daily 2026-09-17 자 37550 이 둘 다 살아 있음.\n      같은 번호대에서 42건이 겹침. 합쳐 넣으면 한쪽이 조용히 덮어씀. 에러는 안 남\n분리: source_category 는 출처가 준 그대로, category 는 우리 분류. 원본이 남아서\n      나중에 다시 나누고 싶어져도 복원됨\n같이: 상세 URL 에 category 를 쓰면 /api/research/market/37550 이 되어 404.\n      원본 구분으로 바꿈\n확인: 네이버 5종을 목록에서 상세까지 실제로 호출해 봄\n\nPR #19 에서 mingmingmon 님이 지적한 내용입니다."
+  },
+  {
+    "sha": "7f4da82848210fdf1e5487683795a263a6d4c356",
+    "metadata": "7f4da82848210fdf1e5487683795a263a6d4c356\nchoiJieun\neaee20171@gmail.com\n2026-09-18T09:03:24+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T09:03:24+09:00\nrefactor: loginOpen을 Header로 내림"
+  },
+  {
+    "sha": "7f544a9c7e332063008fd5aa07295106d4b4c5d9",
+    "metadata": "7f544a9c7e332063008fd5aa07295106d4b4c5d9\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:48:03+09:00\nGitHub\nnoreply@github.com\n2026-09-16T15:48:03+09:00\nMerge pull request #15 from kakaotechcampus-4/feature/concepts\n\n[BE] 개념 페이지 API와 시드 데이터 추가 & [FE] 개념 상세 페이지 추가"
+  },
+  {
+    "sha": "82788682f61d5ae1aae0942d1a90fd176fce72e8",
+    "metadata": "82788682f61d5ae1aae0942d1a90fd176fce72e8\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:19:53+09:00\nGitHub\nnoreply@github.com\n2026-09-16T15:19:53+09:00\nMerge pull request #13 from kakaotechcampus-4/feature/login-backend\n\n[BE] 소셜 로그인 백엔드"
+  },
+  {
+    "sha": "83255d832582119ab8767cb42c54e3b23a8795b5",
+    "metadata": "83255d832582119ab8767cb42c54e3b23a8795b5\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:49:28+09:00\nGitHub\nnoreply@github.com\n2026-09-16T15:49:28+09:00\nMerge pull request #17 from kakaotechcampus-4/feature/stock-info-ui\n\n[FE] 홈과 개별 종목 페이지 재구성"
+  },
+  {
+    "sha": "834ff4a85aa439bde5fc5c917f345ac96294e3ee",
+    "metadata": "834ff4a85aa439bde5fc5c917f345ac96294e3ee\nchoiJieun\neaee20171@gmail.com\n2026-09-18T20:00:23+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T20:00:23+09:00\nrefactor: jwt secret key 검증 추가"
+  },
+  {
+    "sha": "855311b0d4035ded12941d05e5473aa4020e9975",
+    "metadata": "855311b0d4035ded12941d05e5473aa4020e9975\nchoiJieun\neaee20171@gmail.com\n2026-09-16T11:17:03+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T11:17:03+09:00\nfeat(front): 컴포넌트의 단일 책임 원칙에 따라 리팩토링"
+  },
+  {
+    "sha": "85e73cf3ed332cab06f566120e577bb264cc5f1e",
+    "metadata": "85e73cf3ed332cab06f566120e577bb264cc5f1e\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-23T07:59:54+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-23T08:04:19+09:00\nrefactor(ai): 시스템 프롬프트 위치 통일"
+  },
+  {
+    "sha": "86eca5f12d24b7ce77fc6bcd683bd5d96653d45a",
+    "metadata": "86eca5f12d24b7ce77fc6bcd683bd5d96653d45a\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:36+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:36+09:00\nfeat(backend): 쿠키 기반 로그인 사용자 조회 의존성 추가"
+  },
+  {
+    "sha": "88453a92043d571ad9e9edca46acb51b9e0aa17a",
+    "metadata": "88453a92043d571ad9e9edca46acb51b9e0aa17a\nchoiJieun\neaee20171@gmail.com\n2026-09-19T08:27:39+09:00\nGitHub\nnoreply@github.com\n2026-09-19T08:27:39+09:00\nMerge pull request #22 from kakaotechcampus-4/refactor/be-upsert-dart-jwt\n\n[BE] refactor: jwt, dart api 상태코드 분기, user upsert"
+  },
+  {
+    "sha": "8ab2f6a9d19dd8e2959cd491f3006b40316c3db0",
+    "metadata": "8ab2f6a9d19dd8e2959cd491f3006b40316c3db0\nchoiJieun\neaee20171@gmail.com\n2026-09-16T01:17:50+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T01:17:50+09:00\nMerge branch 'develop' into feature/login-frontend"
+  },
+  {
+    "sha": "8f37517b7eb2d7f5e79cb8f8790d12e73669268b",
+    "metadata": "8f37517b7eb2d7f5e79cb8f8790d12e73669268b\n김민규\nkmg@MacBookAir.local\n2026-09-16T14:37:45+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-16T14:37:45+09:00\nfeat(ai): ai 패키지 골격 추가\n\n- pyproject.toml: 별도 uv 프로젝트. sqlalchemy[asyncio], asyncpg, pydantic-settings\n- core/config.py: database_url, http_timeout_sec. 기본값이 있어 .env 없이도 동작\n- core/database.py: 비동기 엔진, 세션 팩토리, DeclarativeBase, create_tables()\n- README.md: 폴더 용도와 실행 방법\n\nbackend 와 같은 Postgres 를 쓰되 프로젝트는 분리함. database_url 기본값은 backend 와 같음.\n폴더 구조는 backend/app/ 을 따랐고 Base 는 따로 둠."
+  },
+  {
+    "sha": "8fc3c8bb7841a7140892f6e462aac4ce4d752b0b",
+    "metadata": "8fc3c8bb7841a7140892f6e462aac4ce4d752b0b\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T14:43:48+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T14:43:48+09:00\nchore(ai): 보고서 생성 시스템 프롬프트와 실행 산출물 픽스처 추가\n\n적재 대상 JSON 스키마의 계약 원본이다. 프롬프트의 규칙은 근거 검증·실행 점검\n스크립트의 검사 항목과 짝이라 한쪽만 바꾸면 검증이 죽는다. 수정하지 않는다.\n\n픽스처는 실제 실행 산출물 네 건이다. verdict 세 종류(explained /\npartially_explained / no_clear_cause)와 background 의 문자열·객체 혼용,\ncounter: null, 상한 초과 케이스가 전부 들어 있어 파싱 테스트의 입력으로 쓴다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "92048f50256ca870cb8809c1915e68e00065b33a",
+    "metadata": "92048f50256ca870cb8809c1915e68e00065b33a\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:59+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:34:59+09:00\nfeat(frontend): 종목 상세 주요 지표 카드를 리스트로 통합하고 개념 설명 툴팁 추가"
+  },
+  {
+    "sha": "9a8865367b76b8fb73e6cafa505c3d420ab5119f",
+    "metadata": "9a8865367b76b8fb73e6cafa505c3d420ab5119f\nswimny\nrlatnud052985@gmail.com\n2026-09-22T19:33:29+09:00\nswimny\nrlatnud052985@gmail.com\n2026-09-22T19:33:29+09:00\nfeat(ai): 뉴스 링크 본문 수집 tool 추가"
+  },
+  {
+    "sha": "9e11a4c6bd60fc7b822483c50a02fea2ca663309",
+    "metadata": "9e11a4c6bd60fc7b822483c50a02fea2ca663309\nswimny\nrlatnud052985@gmail.com\n2026-09-22T22:22:42+09:00\nswimny\nrlatnud052985@gmail.com\n2026-09-22T22:22:42+09:00\nrefactor(ai): 뉴스 링크 매직 넘버를 이름 있는 상수로 분리"
+  },
+  {
+    "sha": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "metadata": "9e8dd0965e7a239a3d4bc57c531adce8088cda26\nchoiJieun\neaee20171@gmail.com\n2026-09-16T17:37:15+09:00\nGitHub\nnoreply@github.com\n2026-09-16T17:37:15+09:00\nMerge pull request #16 from kakaotechcampus-4/feature/analyst-reports\n\n[AI] feature: ai 패키지 골격과 애널리스트 리포트 테이블"
+  },
+  {
+    "sha": "a2b1684620839b5b193b6ebf008caad1ef1a6cfd",
+    "metadata": "a2b1684620839b5b193b6ebf008caad1ef1a6cfd\n김민규\nkmg@MacBookAir.local\n2026-09-16T15:20:52+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-16T15:20:52+09:00\nfeat(ai): 네이버 증권 리서치 클라이언트 추가\n\n- services/analyst/schema.py: 소스 공통 AnalystReportItem, PdfText 모델\n- services/analyst/naver.py: 목록, 상세, PDF 받기. 산업 리포트 업종의견 추출\n- tests/test_analyst_naver.py: 파싱, 증분 수집, AI 자료 제외\n- pyproject: httpx, pydantic 의존성 추가\n\n수집 범위: 카테고리 5종. market 은 daily 와 같은 데이터라 제외\n소스 검증: 한국IR협의회 [AI] 자료는 AI 가 작성한 보고서라서 수집에서 제외\n업종의견: 본문 앞 절반에서만 찾음. 뒤쪽 부록에 과거 의견이 섞여 있음\n구현: 호출이 많아 커넥션 재사용이 필요해서 함수가 아니라 클래스로 둠"
+  },
+  {
+    "sha": "a32d0f74330a89c1d99e806e1f0ff00cf521f928",
+    "metadata": "a32d0f74330a89c1d99e806e1f0ff00cf521f928\n김민규\nkmg@MacBookAir.local\n2026-09-18T01:16:41+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-18T01:16:41+09:00\nrefactor(ai): PDF 바이트 판정을 pdf.py 로 옮김\n\n- services/analyst/pdf.py: pdf_text_from_bytes 추가\n- services/analyst/naver.py: 판정 부분을 걷어내고 위 함수 호출 (48줄 → 14줄)\n- tests/test_analyst_pdf.py: 정상·비PDF·용량초과·본문없음·깨진PDF 5개\n\n문제: 받아온 바이트를 판정하는 코드가 네이버 클라이언트 안에 있었음\n       용량 확인, %PDF 서명, sha256, 임시파일, ok/empty/failed 판정 전부\n       출처와 무관한데 거기 눌러앉아 있었음\n계기: 텔레그램 수집기에서 같은 코드를 그대로 베끼게 됨. PR #18 리뷰 지적과 같은 내용\n경계: extract_pdf_text 가 Path 를 받아서 임시파일 만드는 일이 호출부 몫이었음\n       바이트를 받는 층을 하나 얹으니 호출부는 받아오기만 하면 됨"
+  },
+  {
+    "sha": "a6d8bbfbb86fc7558d02a5bfff380b8760bc1593",
+    "metadata": "a6d8bbfbb86fc7558d02a5bfff380b8760bc1593\nfromzero000\n168260621+fromzero000@users.noreply.github.com\n2026-09-14T21:49:51+09:00\nGitHub\nnoreply@github.com\n2026-09-14T21:49:51+09:00\nMerge pull request #5 from kakaotechcampus-4/feature/news-collector\n\n[BE] feature: 뉴스 API 수집"
+  },
+  {
+    "sha": "a6f5a341a4e09195e3f47eb062879fdc18a1eb07",
+    "metadata": "a6f5a341a4e09195e3f47eb062879fdc18a1eb07\nchoiJieun\neaee20171@gmail.com\n2026-09-18T09:26:21+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T09:26:21+09:00\nchore: API 리서치 원본 응답 .gitignore에 추가"
+  },
+  {
+    "sha": "a7632edee8909d9ff4a7173ff2b9654f14c210e1",
+    "metadata": "a7632edee8909d9ff4a7173ff2b9654f14c210e1\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:45:36+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T15:45:36+09:00\nMerge remote-tracking branch 'origin/develop' into feature/concepts\n\n# Conflicts:\n#\tbackend/app/main.py\n#\tbackend/app/models/__init__.py\n#\tbackend/app/schemas/base.py\n#\tfrontend/src/App.tsx\n#\tfrontend/src/lib/api.ts"
+  },
+  {
+    "sha": "a9fea3c986c5afb50d62e01317fbfd41605b6585",
+    "metadata": "a9fea3c986c5afb50d62e01317fbfd41605b6585\n김민규\nkmg@MacBookAir.local\n2026-09-18T01:16:27+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-18T01:16:27+09:00\ntest(ai): 테스트 함수명을 영어로 변경\n\n- tests/test_analyst_naver.py: 9개\n- tests/test_analyst_pdf.py: 2개\n- tests/test_analyst_report_model.py: 5개\n\n이유: backend/tests 가 전부 영어인데 여기만 한글이었음. 확인 안 하고 다르게 씀\n인코딩: 터미널이 ascii 면 test_목록 처럼 나와서 어느 테스트인지 못 읽음\n설명: 이름으로만 뜻을 전하던 것은 docstring 으로 옮김"
+  },
+  {
+    "sha": "aabc0f6786ce9bf87c8723d6e835b57c2f1d8319",
+    "metadata": "aabc0f6786ce9bf87c8723d6e835b57c2f1d8319\nchoiJieun\neaee20171@gmail.com\n2026-09-16T05:46:00+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T05:46:00+09:00\nfeat(frontend): 홈 검색창에 종목 자동완성 추가"
+  },
+  {
+    "sha": "b0c09fb78be4a2735b33d81ee73a2a9eb293f914",
+    "metadata": "b0c09fb78be4a2735b33d81ee73a2a9eb293f914\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:57:52+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:53:43+09:00\nfeat: 인증 API 응답 타입과 fetch 래퍼 추가\n\nUser/ApiErrorBody 타입과 credentials:'include' 고정, {error:{code,message}}를\nApiError로 변환하는 request() 래퍼를 추가한다. fetchMe/loginWithKakao/logout이\n이걸 통해 호출된다."
+  },
+  {
+    "sha": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "metadata": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7\nfromzero000\n168260621+fromzero000@users.noreply.github.com\n2026-09-19T09:37:49+09:00\nGitHub\nnoreply@github.com\n2026-09-19T09:37:49+09:00\nMerge pull request #20 from kakaotechcampus-4/refactor/report-citation-composite-fk\n\n[BE] refactor: report_citation의 block_id/report_id 불일치를 복합 FK로 막기"
+  },
+  {
+    "sha": "bad5e10bda27a8b152c46121e590c2e075ef5615",
+    "metadata": "bad5e10bda27a8b152c46121e590c2e075ef5615\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:58:17+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T16:53:44+09:00\nfeat: 카카오 인가 코드 교환 콜백 페이지 추가\n\n/oauth/kakao/callback에서 code를 읽어 백엔드와 세션을 교환하는\nKakaoCallbackPage를 추가한다. code 없음/교환 실패는 각각 에러 코드별\n메시지로 안내하고, 인가 코드가 1회용이라 StrictMode 이중 effect 실행에\n대비해 useRef로 중복 요청을 막는다."
+  },
+  {
+    "sha": "bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+    "metadata": "bec024db94cc6ae0bf17e19ccd7766d092d1274f\nswimny\nrlatnud052985@gmail.com\n2026-09-22T19:55:53+09:00\nswimny\nrlatnud052985@gmail.com\n2026-09-22T19:55:53+09:00\ntest(ai): 실제 뉴스 링크로 도는 테스트 추가"
+  },
+  {
+    "sha": "c32bfd82ce5cc115685d6bb448e2bc2147a0a466",
+    "metadata": "c32bfd82ce5cc115685d6bb448e2bc2147a0a466\nchoiJieun\neaee20171@gmail.com\n2026-09-16T01:11:40+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T01:11:40+09:00\nMerge branch 'develop' into feature/login-backend"
+  },
+  {
+    "sha": "c3ac3294acabdf939a41936a223858f56a70156b",
+    "metadata": "c3ac3294acabdf939a41936a223858f56a70156b\nswimny\nrlatnud052985@gmail.com\n2026-09-23T14:05:30+09:00\nswimny\nrlatnud052985@gmail.com\n2026-09-23T14:05:30+09:00\nchore(ai): 의존성 충돌 해결"
+  },
+  {
+    "sha": "c783f6679bb746d6f036e95dc19e74064c2f25ed",
+    "metadata": "c783f6679bb746d6f036e95dc19e74064c2f25ed\n김민규\n123060316+kmgvv23@users.noreply.github.com\n2026-09-22T13:38:37+09:00\n김민규\n123060316+kmgvv23@users.noreply.github.com\n2026-09-22T13:38:37+09:00\nfeat(ai): 텔레그램 리포트 수집과 중복·접근 오류 처리\n\n- 계정별 로그인과 채널 접근 확인 지원\n- PDF 본문·메타데이터 추출 및 네이버 동일 PDF 제외\n- 재수집 시 기존 데이터 보존, 접근·수집 실패 처리\n- #18의 테이블과 Alembic 구조 유지"
+  },
+  {
+    "sha": "c87850ae75c5286d635c9dcdd72f230181b6e869",
+    "metadata": "c87850ae75c5286d635c9dcdd72f230181b6e869\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:31+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-15T15:13:31+09:00\nfeat(backend): 카카오 사용자 find-or-create 레포지토리 추가"
+  },
+  {
+    "sha": "ca76deb6faf2eacb72b4dfbc41f3e806d65cf329",
+    "metadata": "ca76deb6faf2eacb72b4dfbc41f3e806d65cf329\nchoiJieun\neaee20171@gmail.com\n2026-09-13T23:21:04+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-13T23:21:04+09:00\ndocs: 리액트 관련 가이드라인 추가"
+  },
+  {
+    "sha": "ccec55e2abe01e8a42d5a22cdaca8551426c04b7",
+    "metadata": "ccec55e2abe01e8a42d5a22cdaca8551426c04b7\nfromzero\nfromzero000@gmail.com\n2026-09-19T09:22:21+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-19T09:22:21+09:00\nfix(frontend): 카카오 콜백에서 state 검증 결과가 재렌더 시 뒤집히는 문제 수정"
+  },
+  {
+    "sha": "ce8d5edd615ebab45120a5edb64d581e599cd61b",
+    "metadata": "ce8d5edd615ebab45120a5edb64d581e599cd61b\n김민규\nkmg@MacBookAir.local\n2026-09-16T14:37:55+09:00\n김민규\nkmg@MacBookAir.local\n2026-09-16T14:37:55+09:00\nfeat(ai): 증권사 애널리스트 리포트 테이블 추가\n\n- models/analyst_report.py: analyst_reports 테이블\n- models/__init__.py: create_all 에 등록\n\n네이버 리포트 번호는 카테고리마다 따로 매겨짐. 종목분석에도 46078 번이 있고\n산업분석에도 46078 번이 있을 수 있어 번호만으로는 유일하지 않음.\n그래서 출처·카테고리·번호 셋을 묶어 자연키로 씀. 같은 기간을 다시 수집해도 행이 안 늘어남.\n\ncategory 는 company, industry, economy, market 네 가지. 네이버의 invest 와 daily 는\n구분이 되지 않아 market 으로 합침."
+  },
+  {
+    "sha": "d0281183eb125c1fe495f7cdd3c79866f8f6e7b0",
+    "metadata": "d0281183eb125c1fe495f7cdd3c79866f8f6e7b0\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T22:18:44+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T22:18:44+09:00\nstyle(ai): 보고서 적재 테스트 함수 이름을 영어로\n\n한글 설명은 docstring 이 담당한다. 함수 이름은 pytest 출력·CI 로그·IDE 트리에\n그대로 찍히는데, 콘솔 인코딩이 UTF-8 이 아니면 깨져서 어느 테스트가 실패했는지\n읽을 수가 없다. 이름은 식별자로 두고 근거는 docstring 에 남긴다.\n\n테스트 내용은 그대로다. 28 passed.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "d649ac6a05d84014fa3c6978a28300c0c931b794",
+    "metadata": "d649ac6a05d84014fa3c6978a28300c0c931b794\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:54+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:54+09:00\nfeat(frontend): 종목 상세 mock 데이터 확장"
+  },
+  {
+    "sha": "e00d6fa39ff989dbf5b20979da70875626d37ac3",
+    "metadata": "e00d6fa39ff989dbf5b20979da70875626d37ac3\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T21:58:05+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-20T21:58:05+09:00\ndocs(ai): 적재 리포지토리에 보고서 생성 과정 설명 보강\n\n보고서가 어떻게 만들어지는지 모르는 사람이 읽었을 때 코드의 판단 근거를 따라갈\n수 없었다. 파이프라인 7단계에서 이 모듈의 자리, 보고서 한 편의 구성, 판정 세\n종류와 그에 따라 뒷칸 모양이 달라지는 규칙을 모듈 docstring 에 적었다.\n\n각 칸의 도메인 의미도 붙였다. stance 와 direction_match 가 왜 factors 에는\ntrue 만 들어오는지, size_fit 이 판정을 어떻게 가르는지, quote 가 왜 글자\n그대로여야 하는지(검증기가 원본과 대조한다), terms 의 plain 이 왜 본문과\n일치해야 하는지(화면이 글자로 찾아 색을 입힌다), background 의 watch 가 무엇인지.\n\n상한을 자르지 않는 근거에 관측치 논지를 덧붙였다. 잘라내면 잘린 내용뿐 아니라\n\"이 프롬프트가 상한을 얼마나 자주 어기는가\" 라는 자료도 같이 사라진다.\n\n코드 동작은 그대로다.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "e31fe01ac77ef7d32c69d11354ac2c11e8615ade",
+    "metadata": "e31fe01ac77ef7d32c69d11354ac2c11e8615ade\nfromzero\nfromzero000@gmail.com\n2026-09-12T10:44:27+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-12T10:44:27+09:00\nfeat(backend): PostgreSQL 도커 컴포즈와 비동기 DB 세션 추가\n\n- docker-compose.yml: postgres:17-alpine 단일 서비스. 이름 붙은 볼륨,\n  pg_isready healthcheck. 계정·포트는 개발용 기본값에 .env 로 덮어쓰기\n- core/database.py: 비동기 엔진(asyncpg), 세션 팩토리, DeclarativeBase\n- core/config.py: database_url 추가. 기본값이 있어 .env 없이도 동작\n- main.py: lifespan 에서 create_all 실행, /health 가 실제 DB 질의로 연결 확인\n- pyproject: sqlalchemy[asyncio], asyncpg 의존성 추가\n\n백엔드는 호스트에서 uv 로 실행하고 DB 만 컨테이너에 올린다.\n마이그레이션 도구는 아직 넣지 않았다. 모델이 바뀌면 볼륨을 지우고 다시 띄운다."
+  },
+  {
+    "sha": "e7d15a1838a2a7f4cf8676d447a1131fc9cfdb4d",
+    "metadata": "e7d15a1838a2a7f4cf8676d447a1131fc9cfdb4d\nfromzero\nfromzero000@gmail.com\n2026-09-10T20:08:18+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-10T20:08:18+09:00\nchore: SOURCES.md 무시 목록 추가"
+  },
+  {
+    "sha": "ea27d0f52fe473be9b0cfdc7a1166a793694e6b6",
+    "metadata": "ea27d0f52fe473be9b0cfdc7a1166a793694e6b6\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-21T07:37:14+09:00\nhakyeoung\n75005219+hakyeoung@users.noreply.github.com\n2026-09-21T07:37:14+09:00\nrefactor(ai): 스키마 관리를 create_all 에서 alembic 으로 옮김\n\n팀 회의 결정. ai/ 의 표를 alembic 으로 관리한다.\n\n리비전을 둘로 갈랐다. 0001 은 alembic 도입 전에 create_all 로 이미 만들어져\n있던 analyst_reports 의 baseline 이고, 0002 가 이번 보고서 표 네 개다. 한\n리비전에 몰면 쓰던 DB 에서 stamp 도 upgrade 도 맞지 않는다 — stamp 하면 새 표가\n안 생기고 upgrade 하면 analyst_reports 에서 \"이미 있다\" 로 터진다. 쓰던 DB 는\n`alembic stamp 0001` 한 번 찍고 `upgrade head` 하면 된다.\n\napp/core/database.py 의 create_tables() 를 뺐다. 스키마를 만드는 길이 둘이면\n어긋난다. create_all 은 이미 있는 표를 조용히 건너뛰어서, 모델에 칼럼을 더해도\n기존 표는 그대로다 — 코드는 새 칼럼을 쓰는데 DB 에는 없는 상태가 소리 없이\n만들어진다. 지금 레포에서 이 함수를 부르는 곳은 없었다.\n\nenv.py 의 include_object 로 backend 표를 autogenerate 대상에서 뺀다. 이 Base 는\nnews·report 를 모르므로, 그냥 두면 \"모델에 없는 표\" 로 보고 DROP 을 찍는다.\nbackend 는 아직 create_all 을 쓰는데 자기 Base 만 보므로 양쪽이 충돌하지 않는다.\n\n마이그레이션 본문은 손으로 적지 않고 alembic 렌더러로 metadata 에서 뽑았다.\n\ntests/test_migrations.py 를 넣었다. 오프라인 모드(`upgrade head --sql`)로 DDL 을\n받아 모델을 직접 컴파일한 DDL 과 칼럼 단위로 맞춘다. 모델만 고치고 마이그레이션을\n안 만드는 실수를 DB 없이 잡는다. 실제로 칼럼을 하나 넣어 실패하는지 확인했다.\n\n윈도우에서 걸린 것 둘:\n  - alembic.ini 는 로캘 인코딩으로 읽힌다. 한글 주석이 있으면 cp949 에서\n    UnicodeDecodeError 로 죽어서 영어로만 쓴다\n  - 리비전 제목(docstring 첫 줄)도 `alembic history` 에 찍히므로 영어로 쓴다\n\nENUM 을 다시 보지 않았다. \"값 목록을 나중에 못 고친다\" 는 이유는 alembic 으로\n사라졌지만, 스키마를 어긴 값이 오면 INSERT 가 거절된다는 이유가 남는다. 깨진\n건까지 적재하는 게 이 표의 존재 이유라 String 을 유지한다. 근거를 주석에 갱신했다.\n\n31 passed / ruff 통과.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+  },
+  {
+    "sha": "eb366bcf9bfefb4f23de7dbc2001d32588f85ea0",
+    "metadata": "eb366bcf9bfefb4f23de7dbc2001d32588f85ea0\n안지원\n128668708+jiw0nahn@users.noreply.github.com\n2026-09-15T18:18:00+09:00\nGitHub\nnoreply@github.com\n2026-09-15T18:18:00+09:00\nMerge branch 'develop' into feature/dart-ecos-api-client"
+  },
+  {
+    "sha": "ec3273ef85f852db61c3844d1cc6dad98b86a090",
+    "metadata": "ec3273ef85f852db61c3844d1cc6dad98b86a090\njiw0nahn\nwldnjs7805@naver.com\n2026-09-15T22:08:22+09:00\njiw0nahn\nwldnjs7805@naver.com\n2026-09-15T22:08:22+09:00\nfeat(backend): AI 리포트 저장용 DB 스키마 초안 추가 (channel/source_card/report/report_block/report_citation)"
+  },
+  {
+    "sha": "ec6516b676ff7bfff35aeb67ad6e27f371b48627",
+    "metadata": "ec6516b676ff7bfff35aeb67ad6e27f371b48627\nchoiJieun\neaee20171@gmail.com\n2026-09-18T16:12:17+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T16:12:17+09:00\nrefactor: OAuth state 검증 추가"
+  },
+  {
+    "sha": "f7fcdbe57d999ecdda077239e3bf33a357a0abc0",
+    "metadata": "f7fcdbe57d999ecdda077239e3bf33a357a0abc0\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:27+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T10:33:27+09:00\nfeat(frontend): 홈에 실시간 랭킹 섹션 추가"
+  },
+  {
+    "sha": "f9b5ca4f0c10e844674d891615af9ff0db81569e",
+    "metadata": "f9b5ca4f0c10e844674d891615af9ff0db81569e\nchoiJieun\neaee20171@gmail.com\n2026-09-16T14:55:47+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-16T14:55:47+09:00\nfeat(frontend): 종목 상세를 AI 보고서·상세 정보 탭으로 재구성"
+  },
+  {
+    "sha": "fcab491c596151ade47738455d2561bd2ffb7f47",
+    "metadata": "fcab491c596151ade47738455d2561bd2ffb7f47\nfromzero\nfromzero000@gmail.com\n2026-09-12T11:40:55+09:00\nfromzero\nfromzero000@gmail.com\n2026-09-12T11:40:55+09:00\nchore(backend): news-collector 브랜치 병합"
+  },
+  {
+    "sha": "fd37f61ca816144f241d72871c96bf772a85bd16",
+    "metadata": "fd37f61ca816144f241d72871c96bf772a85bd16\nchoiJieun\neaee20171@gmail.com\n2026-09-15T00:38:18+09:00\nGitHub\nnoreply@github.com\n2026-09-15T00:38:18+09:00\nMerge pull request #10 from kakaotechcampus-4/feature/login-ui\n\n[FE] 소셜 로그인 ui 구현"
+  },
+  {
+    "sha": "fff61602474df7fefcf93802a28feec16166f21f",
+    "metadata": "fff61602474df7fefcf93802a28feec16166f21f\nchoiJieun\neaee20171@gmail.com\n2026-09-18T20:54:48+09:00\nchoiJieun\neaee20171@gmail.com\n2026-09-18T20:54:48+09:00\nrefactor: dart api status 관련 분기처리"
+  }
+]

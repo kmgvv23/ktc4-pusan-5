@@ -1,0 +1,1602 @@
+[
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031548764",
+    "pull_request_review_id": 5229207941,
+    "id": 4031548764,
+    "node_id": "PRRC_kwDOT-Ei5M7wTI1c",
+    "diff_hunk": "@@ -0,0 +1,10 @@\n+const KAKAO_AUTH_URL = 'https://kauth.kakao.com/oauth/authorize';\n+\n+export function buildKakaoAuthUrl(): string {\n+  const params = new URLSearchParams({\n+    client_id: import.meta.env.VITE_KAKAO_CLIENT_ID,\n+    redirect_uri: import.meta.env.VITE_KAKAO_REDIRECT_URI,\n+    response_type: 'code',\n+  });",
+    "path": "frontend/src/features/auth/kakaoAuth.ts",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "프론트에서 인가 코드를 받는 구조 자체는 좋은데, OAuth state 검증이 빠져 있는 것 같습니다. [kakao developers 문서 2.3](https://developers.kakao.com/docs/en/getting-started/security-guideline#state-param)에서도 CSRF 방지를 위해 로그인 요청마다 고유한 난수 state를 넣고 callback에서 동일한 값인지 확인하도록 권장하고 있습니다.\n\n로그인 시작 시 state를 생성해 session/cookie 등에 보관 → authorize URL에 추가 → callback에서 받은 state와 비교한 뒤 code를 백엔드에 전달하는 흐름을 추가하면 좋을 것 같습니다.",
+    "created_at": "2026-09-16T23:04:02Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031548764",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031548764"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031548764"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031548764/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 15,
+    "original_line": 8,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 8,
+    "position": 15,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031567964",
+    "pull_request_review_id": 5229207941,
+    "id": 4031567964,
+    "node_id": "PRRC_kwDOT-Ei5M7wTNhc",
+    "diff_hunk": "@@ -0,0 +1,40 @@\n+from datetime import UTC, datetime\n+\n+from sqlalchemy import select\n+from sqlalchemy.ext.asyncio import AsyncSession\n+\n+from app.models import User\n+\n+\n+async def get_or_create_user(\n+    session: AsyncSession,\n+    *,\n+    kakao_id: str,\n+    nickname: str,\n+    email: str,\n+) -> User:\n+    #kakao_id 로 조회\n+    #없으면 새로 만들고 / 있으면 정보 불러옴\n+    user = (\n+        await session.execute(select(User).where(User.kakao_id == kakao_id))\n+    ).scalar_one_or_none()\n+\n+    if user is None:\n+        user = User(",
+    "path": "backend/app/repositories/user.py",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "PR 본문에서 분석하신 race condition이 맞습니다!\n\n이 경우에는 애플리케이션에서 SELECT → 없으면 INSERT를 나누기보다 PostgreSQL의 INSERT ... ON CONFLICT ... DO UPDATE/NOTHING RETURNING 같은 atomic upsert로 묶는 방향이 가장 자연스러워 보입니다.\n\n로그인할 때 nickname / last_login_at도 갱신해야 하니 ON CONFLICT(kakao_id) DO UPDATE ... RETURNING 형태도 고려해볼 수 있을 것 같습니다. 가능하면 서로 다른 session에서 동일 kakao_id로 동시에 호출하는 테스트도 하나 있으면 좋을 것 같아요",
+    "created_at": "2026-09-16T23:07:52Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031567964",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031567964"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031567964"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031567964/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 23,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 23,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031571406",
+    "pull_request_review_id": 5229207941,
+    "id": 4031571406,
+    "node_id": "PRRC_kwDOT-Ei5M7wTOXO",
+    "diff_hunk": "@@ -0,0 +1,83 @@\n+\"\"\"\n+report 결과물이 최종적으로 쌓이는 테이블.\n+report_block: 리포트를 구성하는 블록(이유/참고/확인 못한 것 등) 단위.\n+report_citation: 어떤 블록(또는 리포트 전체)이 어떤 근거카드를 인용했는지 (역추적용 다리).\n+\"\"\"\n+from datetime import UTC, datetime\n+\n+from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text\n+from sqlalchemy.orm import Mapped, mapped_column, relationship\n+\n+from app.core.database import Base\n+\n+\n+class Report(Base):\n+    __tablename__ = \"report\"\n+\n+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)\n+\n+    report_type: Mapped[str] = mapped_column(String(20), nullable=False)  # STOCK / MARKET\n+    stock_code: Mapped[str | None] = mapped_column(String(12), nullable=True)\n+\n+    title: Mapped[str] = mapped_column(String(200), nullable=False)\n+    # 통짜 텍스트 요약. 구조화된 본문은 report_block으로 관리한다.\n+    body: Mapped[str | None] = mapped_column(Text, nullable=True)\n+\n+    verdict: Mapped[str | None] = mapped_column(String(20), nullable=True)  # CONFIRMED / UNCONFIRMED 등\n+    status: Mapped[str] = mapped_column(String(20), nullable=False, default=\"DRAFT\")  # DRAFT/GATED/PUBLISHED\n+\n+    generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)\n+    created_at: Mapped[datetime] = mapped_column(\n+        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n+    )\n+\n+    blocks: Mapped[list[\"ReportBlock\"]] = relationship(back_populates=\"report\")\n+    citations: Mapped[list[\"ReportCitation\"]] = relationship(back_populates=\"report\")\n+\n+\n+class ReportBlock(Base):\n+    \"\"\"이유(FACTOR) / 참고(NOTE) / 확인 못한 것(UNCONFIRMED) 등 리포트 본문의 블록 하나.\n+\n+    FACTOR는 claim(한줄 주장)+detail(설명)을 함께 쓰고, NOTE/UNCONFIRMED는\n+    claim 없이 detail만 채운다. block_type 값 목록은 카드 분류처럼 아직\n+    확정 전이라 자유 문자열로 둔다.\n+    \"\"\"\n+\n+    __tablename__ = \"report_block\"\n+\n+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)\n+    report_id: Mapped[int] = mapped_column(ForeignKey(\"report.id\"), nullable=False)\n+\n+    block_type: Mapped[str] = mapped_column(String(20), nullable=False)  # FACTOR / NOTE / UNCONFIRMED\n+    order_index: Mapped[int] = mapped_column(nullable=False, default=0)\n+\n+    claim: Mapped[str | None] = mapped_column(String(300), nullable=True)  # FACTOR 전용\n+    detail: Mapped[str] = mapped_column(Text, nullable=False)\n+\n+    created_at: Mapped[datetime] = mapped_column(\n+        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n+    )\n+\n+    report: Mapped[\"Report\"] = relationship(back_populates=\"blocks\")\n+    citations: Mapped[list[\"ReportCitation\"]] = relationship(back_populates=\"block\")\n+\n+\n+class ReportCitation(Base):\n+    __tablename__ = \"report_citation\"\n+\n+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)\n+    report_id: Mapped[int] = mapped_column(ForeignKey(\"report.id\"), nullable=False)\n+    # 블록 단위 인용이면 채워짐. 리포트 전체에 걸린 인용(블록으로 안 쪼개진 경우)이면 NULL.\n+    block_id: Mapped[int | None] = mapped_column(ForeignKey(\"report_block.id\"), nullable=True)\n+    source_card_id: Mapped[int] = mapped_column(ForeignKey(\"source_card.id\"), nullable=False)",
+    "path": "backend/app/models/report.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "report_id와 block_id를 둘 다 저장하면 조회는 편해질 것 같은데, 현재 FK만으로는 block_id가 반드시 같은 report_id 소속이라는 보장이 없는 것 같습니다..\n\n예를 들어 report_id=1인데 report 2의 block_id를 넣는 row도 DB 레벨에서는 유효해 보입니다. report_id를 block을 통해 유도하도록 중복을 없애거나, (block_id, report_id) 관계를 composite FK/constraint로 보장하는 방식 등을 고려해보면 좋을 것 같습니다.",
+    "created_at": "2026-09-16T23:08:28Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031571406",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031571406"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031571406"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031571406/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 96,
+    "original_line": 72,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 72,
+    "position": 96,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031576807",
+    "pull_request_review_id": 5229207941,
+    "id": 4031576807,
+    "node_id": "PRRC_kwDOT-Ei5M7wTPrn",
+    "diff_hunk": "@@ -1,18 +1,34 @@\n+from contextlib import asynccontextmanager\n+\n from fastapi import FastAPI\n from fastapi.exceptions import RequestValidationError\n from fastapi.middleware.cors import CORSMiddleware\n+from sqlalchemy import text\n from starlette.exceptions import HTTPException as StarletteHTTPException\n \n+import app.models\n from app.core.config import settings\n+from app.core.database import Base, engine\n from app.core.errors import (\n     AppError,\n     app_error_handler,\n     http_exception_handler,\n     unhandled_exception_handler,\n     validation_error_handler,\n )\n+from app.routers import concepts\n+from app.routers.auth import router as auth_router\n+\n+\n+@asynccontextmanager\n+async def lifespan(app: FastAPI):\n+    async with engine.begin() as conn:\n+        await conn.run_sync(Base.metadata.create_all)\n+    yield",
+    "path": "backend/app/main.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "지금 로컬 개발 초기 단계에서는 create_all()로 빠르게 가는 게 괜찮아 보이는데, 말씀하신 공유 DB를 쓰기 시작하기 전에는 Alembic 같은 migration 체계를 도입하는 게 좋을 것 같습니다.\n\n특히 backend와 ai가 같은 PostgreSQL을 보면서 서로 다른 Base를 가지고 있어서, 공유 DB가 생긴 뒤부터는 “누가 어떤 schema 변경을 소유하는지”와 migration history가 명확해야 할 것 같습니다. 공유 DB 도입 시점의 선행조건으로 migration 체계를 잡아두는 건 어떨까요?",
+    "created_at": "2026-09-16T23:09:29Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031576807",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031576807"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031576807"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031576807/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 27,
+    "original_line": 27,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 27,
+    "position": 27,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031586784",
+    "pull_request_review_id": 5229207941,
+    "id": 4031586784,
+    "node_id": "PRRC_kwDOT-Ei5M7wTSHg",
+    "diff_hunk": "@@ -0,0 +1,79 @@\n+import { useEffect, useRef } from 'react';\n+import { CandlestickSeries, ColorType, HistogramSeries, createChart } from 'lightweight-charts';\n+import { cssVar } from '../chartColors';\n+import type { Candle } from '../mock';\n+\n+export function PriceVolumeChart({ candles }: { candles: Candle[] }) {\n+  const containerRef = useRef<HTMLDivElement>(null);\n+\n+  useEffect(() => {\n+    const el = containerRef.current;\n+    if (!el) return;\n+\n+    const up = cssVar('--color-up', 'crimson');\n+    const down = cssVar('--color-down', 'royalblue');\n+    const upFill = cssVar('--color-up-100', 'mistyrose');\n+    const downFill = cssVar('--color-down-100', 'aliceblue');\n+    const divider = cssVar('--color-divider', 'lightgray');\n+    const axisText = cssVar('--color-neutral-700', 'gray');\n+\n+    const chart = createChart(el, {\n+      width: el.clientWidth,\n+      height: 320,\n+      layout: {\n+        background: { type: ColorType.Solid, color: 'transparent' },\n+        textColor: axisText,\n+        attributionLogo: false,\n+      },\n+      grid: { vertLines: { visible: false }, horzLines: { color: divider } },\n+      rightPriceScale: { borderColor: divider },\n+      timeScale: { borderColor: divider },\n+    });\n+\n+    const priceSeries = chart.addSeries(CandlestickSeries, {\n+      upColor: up,\n+      downColor: down,\n+      borderVisible: false,\n+      wickUpColor: up,\n+      wickDownColor: down,\n+    });\n+    priceSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        open: c.open,\n+        high: c.high,\n+        low: c.low,\n+        close: c.close,\n+      })),\n+    );\n+\n+    const volumeSeries = chart.addSeries(HistogramSeries, {\n+      priceFormat: { type: 'volume' },\n+      priceScaleId: 'volume',\n+    });\n+    chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.75, bottom: 0 } });\n+    chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.05, bottom: 0.3 } });\n+    volumeSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        value: c.volume,\n+        color: c.close >= c.open ? upFill : downFill,\n+      })),\n+    );\n+\n+    chart.timeScale().fitContent();\n+\n+    // 너비만 바꾸면 기존 확대 배율이 그대로 남아 최근 구간만 보이고 왼쪽이 빈다. 리사이즈 때마다 다시 맞춘다.\n+    const handleResize = () => {\n+      chart.applyOptions({ width: el.clientWidth });\n+      chart.timeScale().fitContent();\n+    };\n+    window.addEventListener('resize', handleResize);\n+    return () => {\n+      window.removeEventListener('resize', handleResize);\n+      chart.remove();\n+    };\n+  }, [candles]);",
+    "path": "frontend/src/features/stock/components/PriceVolumeChart.tsx",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "말씀해주신 것처럼 로그인 모달 state 위치 문제와 별개로 차트 쪽에서도 리렌더 비용이 크게 발생할 수 있을 것 같습니다. 2번 방식으로 해결하는 것에 동의합니다! 그런데 조금 더 신경쓰면 좋을 것 같은 부분들을 아래에 정리했습니다.\n\n부모에서 history.slice(...)가 렌더마다 새 배열을 만들고 있고, 여기 effect가 [candles]에 의존해서 candles reference가 바뀔 때마다 기존 chart를 remove한 뒤 새 chart를 생성하게 됩니다.\n\n차트 인스턴스 생성 effect와 데이터 갱신 effect를 분리해서 chart 자체는 mount 시 한 번만 만들고, candles 변경 시에는 series의 setData만 호출하는 방식은 어떨까요? 부모의 slice 결과도 필요하다면 useMemo로 안정화할 수 있을 것 같아요!",
+    "created_at": "2026-09-16T23:11:28Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031586784",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031586784"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031586784"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031586784/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 107,
+    "original_line": 76,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 76,
+    "position": 107,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031604250",
+    "pull_request_review_id": 5229207941,
+    "id": 4031604250,
+    "node_id": "PRRC_kwDOT-Ei5M7wTWYa",
+    "diff_hunk": "@@ -1,11 +1,34 @@\n+\"\"\"환경변수 설정. 비밀키는 여기서만 읽는다 (backend/CLAUDE.md).\"\"\"\n+\n from pydantic_settings import BaseSettings, SettingsConfigDict\n \n \n class Settings(BaseSettings):\n-    model_config = SettingsConfigDict(env_file=\".env\", extra=\"ignore\")\n+    model_config = SettingsConfigDict(env_file=\".env\", env_file_encoding=\"utf-8\", extra=\"ignore\")\n \n     app_name: str = \"BASIS API\"\n     cors_origins: list[str] = [\"http://localhost:5173\"]\n+    database_url: str = \"postgresql+asyncpg://basis:basis@localhost:5432/basis\"\n+\n+    # 외부 API 키\n+    naver_client_id: str = \"\"\n+    naver_client_secret: str = \"\"\n+    kis_app_key: str = \"\"\n+    kis_app_secret: str = \"\"\n+    dart_api_key: str = \"\"\n+    ecos_api_key: str = \"\"\n+\n+    # 카카오 로그인\n+    kakao_client_id: str = \"\"\n+    kakao_client_secret: str = \"\"\n+    kakao_redirect_uri: str = \"\"\n+\n+    # 자체 세션(JWT)\n+    jwt_secret_key: str = \"\"\n+    jwt_algorithm: str = \"HS256\"\n+    jwt_expire_minutes: int = 20160  # 14일",
+    "path": "backend/app/core/config.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "JWT secret은 설정 누락 시 빈 문자열로 서버가 정상 실행되는 것보다 startup 단계에서 바로 실패하는 편이 안전해 보입니다.\n\n외부 API key는 해당 기능을 사용하지 않을 수도 있어서 default가 있어도 괜찮지만, 인증이 활성화된 상태의 jwt_secret_key는 required setting으로 두거나 최소 길이 검증을 두는 건 어떨까요?",
+    "created_at": "2026-09-16T23:14:16Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031604250",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031604250"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031604250"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031604250/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 30,
+    "original_line": 29,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 30,
+    "position": 31,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031608753",
+    "pull_request_review_id": 5229207941,
+    "id": 4031608753,
+    "node_id": "PRRC_kwDOT-Ei5M7wTXex",
+    "diff_hunk": "@@ -0,0 +1,32 @@\n+import httpx\n+\n+from app.core.config import settings\n+\n+BASE_URL = \"https://opendart.fss.or.kr/api\"\n+\n+\n+async def fetch_disclosure_list(corp_code: str, bgn_de: str, end_de: str) -> dict:\n+    \"\"\"GET /api/list.json — 공시 목록 조회.\"\"\"\n+    async with httpx.AsyncClient() as client:\n+        response = await client.get(\n+            f\"{BASE_URL}/list.json\",\n+            params={\n+                \"crtfc_key\": settings.dart_api_key,\n+                \"corp_code\": corp_code,\n+                \"bgn_de\": bgn_de,\n+                \"end_de\": end_de,\n+            },\n+        )\n+        response.raise_for_status()\n+        return response.json()",
+    "path": "backend/app/services/dart_client.py",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "DART는 HTTP status와 별개로 JSON body의 status 값으로 API 오류를 내려주는 것으로 알고 있습니다. \n\n현재 raise_for_status()만 통과하면 그대로 성공 응답처럼 반환되어서, 예를 들어 020(요청 제한 초과) 같은 응답도 caller가 직접 해석해야 할 것 같아요.\n\n여기 client boundary에서 status == \"000\"을 확인하고 공통 Dart API exception으로 변환하는 방식은 어떨까요? 013(조회 데이터 없음)처럼 도메인상 정상적인 empty로 볼 값은 별도로 정의하면 좋을 것 같습니다.",
+    "created_at": "2026-09-16T23:15:03Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031608753",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031608753"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031608753"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031608753/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 21,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 21,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031614207",
+    "pull_request_review_id": 5229207941,
+    "id": 4031614207,
+    "node_id": "PRRC_kwDOT-Ei5M7wTYz_",
+    "diff_hunk": "@@ -0,0 +1,140 @@\n+\"\"\"② core — 증권사 애널리스트 리포트.\n+\n+한 행 = 리포트 한 편. 지금은 네이버 증권 리서치만 넣지만 `source` 컬럼으로\n+텔레그램·한경컨센서스 같은 다른 출처를 같은 표에 받는다.\n+\n+PDF 원본은 저장하지 않는다. 임시 폴더에 받아 텍스트만 뽑고 파일은 지운다.\n+    - 1주일치 PDF만 해도 수백 MB인데, 우리가 쓰는 건 본문 텍스트뿐이다.\n+    - `attach_url`이 살아 있어서(2025-12 리포트도 지금 200으로 응답) 파서를\n+      고치면 다시 받아 재파싱할 수 있다. 그래서 버려도 되는 것이다.\n+    - `pdf_sha256`을 남겨 같은 파일이 다른 출처로 또 들어와도 알아본다.\n+\n+요약(summary_text)과 본문(body_text)을 따로 두는 이유: 요약은 네이버가 준\n+확정 텍스트(평균 517자)고 본문은 우리가 PDF에서 뽑은 것이라 품질이 다르다.\n+섞으면 나중에 무엇을 인용했는지 못 가린다.\n+\"\"\"\n+\n+from datetime import date, datetime\n+from decimal import Decimal\n+\n+from sqlalchemy import (\n+    BigInteger,\n+    Date,\n+    DateTime,\n+    Index,\n+    Integer,\n+    Numeric,\n+    String,\n+    Text,\n+    UniqueConstraint,\n+    func,\n+)\n+from sqlalchemy.dialects.postgresql import JSONB\n+from sqlalchemy.orm import Mapped, mapped_column\n+\n+from app.core.database import Base\n+\n+\n+class AnalystReport(Base):\n+    __tablename__ = \"analyst_reports\"\n+    __table_args__ = (\n+        # researchId는 카테고리마다 별도 시퀀스다(company 96141, industry 46078).\n+        # 그래서 (출처, 카테고리, 원본ID)가 자연키다. 재수집해도 중복이 안 생긴다.\n+        UniqueConstraint(\"source\", \"category\", \"source_id\", name=\"uq_analyst_report_source_id\"),\n+        Index(\"ix_analyst_report_code_date\", \"item_code\", \"write_date\"),\n+        Index(\"ix_analyst_report_date\", \"write_date\"),\n+        Index(\"ix_analyst_report_broker_date\", \"broker\", \"write_date\"),\n+        # 본문 추출 대기열을 뽑는 인덱스\n+        Index(\"ix_analyst_report_body_status\", \"body_status\", \"write_date\"),\n+    )\n+\n+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)\n+\n+    # --- 출처 --------------------------------------------------------\n+    source: Mapped[str] = mapped_column(String(16), default=\"naver\")  # naver | telegram\n+    source_id: Mapped[str] = mapped_column(String(64))  # 네이버 researchId\n+\n+    # 리포트 **종류**. 출처가 아니다 — 출처는 source 가 말한다.\n+    #     company    종목분석      특정 종목 하나\n+    #     industry   산업분석      업종·테마. 종목 여러 개\n+    #     economy    경제분석      금리·물가·고용 같은 거시지표와 통화정책\n+    #     market     시황·투자전략  장마감·브리핑·자산배분·포트폴리오\n+    #\n+    # 네이버는 invest(투자전략)와 daily(시황)를 따로 주는데 **합쳐서 market 으로 받는다.**\n+    # 네이버 229건으로 채점해보니 둘이 안 갈린다(3종 62~69% → 합치면 84~86%).\n+    # 네이버 라벨 자체가 흔들려서다 — 같은 'Weekly' 가 증권사에 따라 invest 이기도\n+    # daily 이기도 하다. 증권사가 자기 발간물을 어디에 올릴지 정하는 거라\n+    # 제목·본문으로는 복원이 안 된다. 구분이 안 되는 걸 나눠두면 그 칼럼을 못 믿는다.\n+    category: Mapped[str] = mapped_column(String(16))",
+    "path": "ai/app/models/analyst_report.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "여기",
+    "created_at": "2026-09-16T23:15:53Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031614207",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031614207"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031614207"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031614207/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 68,
+    "original_line": 68,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 68,
+    "position": 68,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031618498",
+    "pull_request_review_id": 5229207941,
+    "id": 4031618498,
+    "node_id": "PRRC_kwDOT-Ei5M7wTZ3C",
+    "diff_hunk": "@@ -0,0 +1,140 @@\n+\"\"\"② core — 증권사 애널리스트 리포트.\n+\n+한 행 = 리포트 한 편. 지금은 네이버 증권 리서치만 넣지만 `source` 컬럼으로\n+텔레그램·한경컨센서스 같은 다른 출처를 같은 표에 받는다.\n+\n+PDF 원본은 저장하지 않는다. 임시 폴더에 받아 텍스트만 뽑고 파일은 지운다.\n+    - 1주일치 PDF만 해도 수백 MB인데, 우리가 쓰는 건 본문 텍스트뿐이다.\n+    - `attach_url`이 살아 있어서(2025-12 리포트도 지금 200으로 응답) 파서를\n+      고치면 다시 받아 재파싱할 수 있다. 그래서 버려도 되는 것이다.\n+    - `pdf_sha256`을 남겨 같은 파일이 다른 출처로 또 들어와도 알아본다.\n+\n+요약(summary_text)과 본문(body_text)을 따로 두는 이유: 요약은 네이버가 준\n+확정 텍스트(평균 517자)고 본문은 우리가 PDF에서 뽑은 것이라 품질이 다르다.\n+섞으면 나중에 무엇을 인용했는지 못 가린다.\n+\"\"\"\n+\n+from datetime import date, datetime\n+from decimal import Decimal\n+\n+from sqlalchemy import (\n+    BigInteger,\n+    Date,\n+    DateTime,\n+    Index,\n+    Integer,\n+    Numeric,\n+    String,\n+    Text,\n+    UniqueConstraint,\n+    func,\n+)\n+from sqlalchemy.dialects.postgresql import JSONB\n+from sqlalchemy.orm import Mapped, mapped_column\n+\n+from app.core.database import Base\n+\n+\n+class AnalystReport(Base):\n+    __tablename__ = \"analyst_reports\"\n+    __table_args__ = (\n+        # researchId는 카테고리마다 별도 시퀀스다(company 96141, industry 46078).\n+        # 그래서 (출처, 카테고리, 원본ID)가 자연키다. 재수집해도 중복이 안 생긴다.\n+        UniqueConstraint(\"source\", \"category\", \"source_id\", name=\"uq_analyst_report_source_id\"),",
+    "path": "ai/app/models/analyst_report.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "[이 부분의 설명](https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19/changes#r4031614207)대로 source_id가 원본 category별로 별도 namespace라면, invest와 daily를 둘 다 내부 market으로 normalize하는 순간 natural key가 충돌할 가능성이 생길 수도 있을 것 같아요..\n\n내부 분석용 category=market은 유지하되 source_category 같은 원본 분류를 별도로 보존하고 unique key에는 원본 category를 사용하는 방법도 고려해볼 수 있을 것 같습니다!",
+    "created_at": "2026-09-16T23:16:36Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031618498",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031618498"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031618498"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031618498/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 43,
+    "original_line": 43,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 43,
+    "position": 43,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031624597",
+    "pull_request_review_id": 5229207941,
+    "id": 4031624597,
+    "node_id": "PRRC_kwDOT-Ei5M7wTbWV",
+    "diff_hunk": "@@ -0,0 +1,42 @@\n+import { useEffect, useState, type ReactNode } from 'react';\n+import { fetchMe, loginWithKakao as requestKakaoLogin, logout as requestLogout } from '@/lib/api';\n+import type { User } from '@/lib/types';\n+import { AuthContext, type AuthStatus } from './useAuth';\n+\n+// 앱 진입 시 GET /api/auth/me 로 세션을 복원\n+// 새로고침해도 로그인 상태가 유지\n+export function AuthProvider({ children }: { children: ReactNode }) {\n+  const [user, setUser] = useState<User | null>(null);\n+  const [status, setStatus] = useState<AuthStatus>('loading');\n+\n+  useEffect(() => {\n+    fetchMe()\n+      .then((me) => {\n+        setUser(me);\n+        setStatus('authenticated');\n+      })\n+      .catch(() => {\n+        setUser(null);\n+        setStatus('unauthenticated');",
+    "path": "frontend/src/features/auth/AuthProvider.tsx",
+    "commit_id": "88453a92043d571ad9e9edca46acb51b9e0aa17a",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "현재는 /me가 401인 경우뿐 아니라 네트워크 오류나 5xx도 모두 unauthenticated로 처리되는 것 같습니다. 일시적인 서버 장애 때문에 기존 로그인 사용자가 로그아웃된 것처럼 보일 수 있는데, 이 디테일도 고민해보시면 좋을 것 같아요!",
+    "created_at": "2026-09-16T23:17:47Z",
+    "updated_at": "2026-09-16T23:27:16Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031624597",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031624597"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4031624597"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4031624597/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 20,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 20,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4042290458",
+    "pull_request_review_id": 5242450784,
+    "id": 4042290458,
+    "node_id": "PRRC_kwDOT-Ei5M7w8HUa",
+    "diff_hunk": "@@ -0,0 +1,42 @@\n+import { useEffect, useState, type ReactNode } from 'react';\n+import { fetchMe, loginWithKakao as requestKakaoLogin, logout as requestLogout } from '@/lib/api';\n+import type { User } from '@/lib/types';\n+import { AuthContext, type AuthStatus } from './useAuth';\n+\n+// 앱 진입 시 GET /api/auth/me 로 세션을 복원\n+// 새로고침해도 로그인 상태가 유지\n+export function AuthProvider({ children }: { children: ReactNode }) {\n+  const [user, setUser] = useState<User | null>(null);\n+  const [status, setStatus] = useState<AuthStatus>('loading');\n+\n+  useEffect(() => {\n+    fetchMe()\n+      .then((me) => {\n+        setUser(me);\n+        setStatus('authenticated');\n+      })\n+      .catch(() => {\n+        setUser(null);\n+        setStatus('unauthenticated');",
+    "path": "frontend/src/features/auth/AuthProvider.tsx",
+    "commit_id": "88453a92043d571ad9e9edca46acb51b9e0aa17a",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "디테일 조언해주셔서 감사합니다!! 추가로 찾아보니 에러 유형은 client의 action level에 따라 아래 4가지로 나눈다고 하는데\r\n- 인증만료 및 유효하지 않음 : 401 Unauthorized (혹은 403 Forbidden)\r\n- 일시적 서버 장애 : 5xx\r\n- 네트워크 연결문제 : Timeout, Fetch Error\r\n- 기타 client 에러 : 기타 4xx\r\n\r\n여기서 궁금한 건 현업에서도 크게 4가지로만 분기처리하는지 아니면 필요에 따라 좀 더 세분화하여 처리하는지가 궁금합니다!",
+    "created_at": "2026-09-17T23:35:04Z",
+    "updated_at": "2026-09-18T06:33:25Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4042290458",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4042290458"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4042290458"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4042290458/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 20,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031624597,
+    "author_association": "MEMBER",
+    "original_position": 20,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4042797885",
+    "pull_request_review_id": 5243047159,
+    "id": 4042797885,
+    "node_id": "PRRC_kwDOT-Ei5M7w-DM9",
+    "diff_hunk": "@@ -0,0 +1,140 @@\n+\"\"\"② core — 증권사 애널리스트 리포트.\n+\n+한 행 = 리포트 한 편. 지금은 네이버 증권 리서치만 넣지만 `source` 컬럼으로\n+텔레그램·한경컨센서스 같은 다른 출처를 같은 표에 받는다.\n+\n+PDF 원본은 저장하지 않는다. 임시 폴더에 받아 텍스트만 뽑고 파일은 지운다.\n+    - 1주일치 PDF만 해도 수백 MB인데, 우리가 쓰는 건 본문 텍스트뿐이다.\n+    - `attach_url`이 살아 있어서(2025-12 리포트도 지금 200으로 응답) 파서를\n+      고치면 다시 받아 재파싱할 수 있다. 그래서 버려도 되는 것이다.\n+    - `pdf_sha256`을 남겨 같은 파일이 다른 출처로 또 들어와도 알아본다.\n+\n+요약(summary_text)과 본문(body_text)을 따로 두는 이유: 요약은 네이버가 준\n+확정 텍스트(평균 517자)고 본문은 우리가 PDF에서 뽑은 것이라 품질이 다르다.\n+섞으면 나중에 무엇을 인용했는지 못 가린다.\n+\"\"\"\n+\n+from datetime import date, datetime\n+from decimal import Decimal\n+\n+from sqlalchemy import (\n+    BigInteger,\n+    Date,\n+    DateTime,\n+    Index,\n+    Integer,\n+    Numeric,\n+    String,\n+    Text,\n+    UniqueConstraint,\n+    func,\n+)\n+from sqlalchemy.dialects.postgresql import JSONB\n+from sqlalchemy.orm import Mapped, mapped_column\n+\n+from app.core.database import Base\n+\n+\n+class AnalystReport(Base):\n+    __tablename__ = \"analyst_reports\"\n+    __table_args__ = (\n+        # researchId는 카테고리마다 별도 시퀀스다(company 96141, industry 46078).\n+        # 그래서 (출처, 카테고리, 원본ID)가 자연키다. 재수집해도 중복이 안 생긴다.\n+        UniqueConstraint(\"source\", \"category\", \"source_id\", name=\"uq_analyst_report_source_id\"),",
+    "path": "ai/app/models/analyst_report.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "멘토님 바쁘신 와중에 정성스럽게 코드리뷰 해주셔서 감사합니다!\r\n기존에는 category를 invest와 daily로 그대로 분류해뒀다가, 이후에 pdf 분류 자체가 애매하다는 것을 인지하고, 두 category를 하나로 통합하였습니다. 그러나 이 과정에서 source_id 충돌을 차마 인지하지 못했습니다.\r\n실제로 테스트해보니 약 9개월의 텀을 두고 source_id가 중복이 있었습니다.\r\n\r\n멘토님 말씀대로, 원본 분류를 그대로 유지한채, 내부 분석용 Market도 쓰겠습니다!",
+    "created_at": "2026-09-18T01:03:30Z",
+    "updated_at": "2026-09-18T01:03:30Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4042797885",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4042797885"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4042797885"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4042797885/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 43,
+    "original_line": 43,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031618498,
+    "author_association": "MEMBER",
+    "original_position": 43,
+    "position": 43,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044241151",
+    "pull_request_review_id": 5244754807,
+    "id": 4044241151,
+    "node_id": "PRRC_kwDOT-Ei5M7xDjj_",
+    "diff_hunk": "@@ -0,0 +1,83 @@\n+\"\"\"\n+report 결과물이 최종적으로 쌓이는 테이블.\n+report_block: 리포트를 구성하는 블록(이유/참고/확인 못한 것 등) 단위.\n+report_citation: 어떤 블록(또는 리포트 전체)이 어떤 근거카드를 인용했는지 (역추적용 다리).\n+\"\"\"\n+from datetime import UTC, datetime\n+\n+from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text\n+from sqlalchemy.orm import Mapped, mapped_column, relationship\n+\n+from app.core.database import Base\n+\n+\n+class Report(Base):\n+    __tablename__ = \"report\"\n+\n+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)\n+\n+    report_type: Mapped[str] = mapped_column(String(20), nullable=False)  # STOCK / MARKET\n+    stock_code: Mapped[str | None] = mapped_column(String(12), nullable=True)\n+\n+    title: Mapped[str] = mapped_column(String(200), nullable=False)\n+    # 통짜 텍스트 요약. 구조화된 본문은 report_block으로 관리한다.\n+    body: Mapped[str | None] = mapped_column(Text, nullable=True)\n+\n+    verdict: Mapped[str | None] = mapped_column(String(20), nullable=True)  # CONFIRMED / UNCONFIRMED 등\n+    status: Mapped[str] = mapped_column(String(20), nullable=False, default=\"DRAFT\")  # DRAFT/GATED/PUBLISHED\n+\n+    generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)\n+    created_at: Mapped[datetime] = mapped_column(\n+        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n+    )\n+\n+    blocks: Mapped[list[\"ReportBlock\"]] = relationship(back_populates=\"report\")\n+    citations: Mapped[list[\"ReportCitation\"]] = relationship(back_populates=\"report\")\n+\n+\n+class ReportBlock(Base):\n+    \"\"\"이유(FACTOR) / 참고(NOTE) / 확인 못한 것(UNCONFIRMED) 등 리포트 본문의 블록 하나.\n+\n+    FACTOR는 claim(한줄 주장)+detail(설명)을 함께 쓰고, NOTE/UNCONFIRMED는\n+    claim 없이 detail만 채운다. block_type 값 목록은 카드 분류처럼 아직\n+    확정 전이라 자유 문자열로 둔다.\n+    \"\"\"\n+\n+    __tablename__ = \"report_block\"\n+\n+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)\n+    report_id: Mapped[int] = mapped_column(ForeignKey(\"report.id\"), nullable=False)\n+\n+    block_type: Mapped[str] = mapped_column(String(20), nullable=False)  # FACTOR / NOTE / UNCONFIRMED\n+    order_index: Mapped[int] = mapped_column(nullable=False, default=0)\n+\n+    claim: Mapped[str | None] = mapped_column(String(300), nullable=True)  # FACTOR 전용\n+    detail: Mapped[str] = mapped_column(Text, nullable=False)\n+\n+    created_at: Mapped[datetime] = mapped_column(\n+        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n+    )\n+\n+    report: Mapped[\"Report\"] = relationship(back_populates=\"blocks\")\n+    citations: Mapped[list[\"ReportCitation\"]] = relationship(back_populates=\"block\")\n+\n+\n+class ReportCitation(Base):\n+    __tablename__ = \"report_citation\"\n+\n+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)\n+    report_id: Mapped[int] = mapped_column(ForeignKey(\"report.id\"), nullable=False)\n+    # 블록 단위 인용이면 채워짐. 리포트 전체에 걸린 인용(블록으로 안 쪼개진 경우)이면 NULL.\n+    block_id: Mapped[int | None] = mapped_column(ForeignKey(\"report_block.id\"), nullable=True)\n+    source_card_id: Mapped[int] = mapped_column(ForeignKey(\"source_card.id\"), nullable=False)",
+    "path": "backend/app/models/report.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "jiw0nahn",
+      "id": 128668708,
+      "node_id": "U_kgDOB6tUJA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128668708?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/jiw0nahn",
+      "html_url": "https://github.com/jiw0nahn",
+      "followers_url": "https://api.github.com/users/jiw0nahn/followers",
+      "following_url": "https://api.github.com/users/jiw0nahn/following{/other_user}",
+      "gists_url": "https://api.github.com/users/jiw0nahn/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/jiw0nahn/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/jiw0nahn/subscriptions",
+      "organizations_url": "https://api.github.com/users/jiw0nahn/orgs",
+      "repos_url": "https://api.github.com/users/jiw0nahn/repos",
+      "events_url": "https://api.github.com/users/jiw0nahn/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/jiw0nahn/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "안녕하세요 멘토님! 자세한 리뷰 감사합니다.\r\n(block_id, report_id) 관계를 composite FK로 설정해서 보장하는 방식으로 수정하도록 했습니다. 감사합니다!",
+    "created_at": "2026-09-18T06:07:41Z",
+    "updated_at": "2026-09-18T06:07:41Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4044241151",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044241151"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4044241151"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044241151/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 96,
+    "original_line": 72,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031571406,
+    "author_association": "MEMBER",
+    "original_position": 72,
+    "position": 96,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044369533",
+    "pull_request_review_id": 5244914837,
+    "id": 4044369533,
+    "node_id": "PRRC_kwDOT-Ei5M7xEC59",
+    "diff_hunk": "@@ -0,0 +1,79 @@\n+import { useEffect, useRef } from 'react';\n+import { CandlestickSeries, ColorType, HistogramSeries, createChart } from 'lightweight-charts';\n+import { cssVar } from '../chartColors';\n+import type { Candle } from '../mock';\n+\n+export function PriceVolumeChart({ candles }: { candles: Candle[] }) {\n+  const containerRef = useRef<HTMLDivElement>(null);\n+\n+  useEffect(() => {\n+    const el = containerRef.current;\n+    if (!el) return;\n+\n+    const up = cssVar('--color-up', 'crimson');\n+    const down = cssVar('--color-down', 'royalblue');\n+    const upFill = cssVar('--color-up-100', 'mistyrose');\n+    const downFill = cssVar('--color-down-100', 'aliceblue');\n+    const divider = cssVar('--color-divider', 'lightgray');\n+    const axisText = cssVar('--color-neutral-700', 'gray');\n+\n+    const chart = createChart(el, {\n+      width: el.clientWidth,\n+      height: 320,\n+      layout: {\n+        background: { type: ColorType.Solid, color: 'transparent' },\n+        textColor: axisText,\n+        attributionLogo: false,\n+      },\n+      grid: { vertLines: { visible: false }, horzLines: { color: divider } },\n+      rightPriceScale: { borderColor: divider },\n+      timeScale: { borderColor: divider },\n+    });\n+\n+    const priceSeries = chart.addSeries(CandlestickSeries, {\n+      upColor: up,\n+      downColor: down,\n+      borderVisible: false,\n+      wickUpColor: up,\n+      wickDownColor: down,\n+    });\n+    priceSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        open: c.open,\n+        high: c.high,\n+        low: c.low,\n+        close: c.close,\n+      })),\n+    );\n+\n+    const volumeSeries = chart.addSeries(HistogramSeries, {\n+      priceFormat: { type: 'volume' },\n+      priceScaleId: 'volume',\n+    });\n+    chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.75, bottom: 0 } });\n+    chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.05, bottom: 0.3 } });\n+    volumeSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        value: c.volume,\n+        color: c.close >= c.open ? upFill : downFill,\n+      })),\n+    );\n+\n+    chart.timeScale().fitContent();\n+\n+    // 너비만 바꾸면 기존 확대 배율이 그대로 남아 최근 구간만 보이고 왼쪽이 빈다. 리사이즈 때마다 다시 맞춘다.\n+    const handleResize = () => {\n+      chart.applyOptions({ width: el.clientWidth });\n+      chart.timeScale().fitContent();\n+    };\n+    window.addEventListener('resize', handleResize);\n+    return () => {\n+      window.removeEventListener('resize', handleResize);\n+      chart.remove();\n+    };\n+  }, [candles]);",
+    "path": "frontend/src/features/stock/components/PriceVolumeChart.tsx",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "조언 감사합니다! PriceVolumeChart를 effect 분리해서 차트 재계산 같은 실행 빈도는 줄이도록 수정했습니다. 추가로 로그인 모달 state 처럼 리포트 관련에서도 reportStatus가 바뀔 때마다 함수 본문 재실행되는 문제 발견해서 수정했습니다! \r\n\r\n추가로 이런 디테일한 부분을 인식하고 관찰하는 능력은 어떻게 높일 수 있는지 조언을 구하고 싶습니다. 저는 코드 수정할 때 프론트 부분은 `\"컴포넌트의 단일 책임 원칙, Props 타입 검증 및 기본값 설정, Context의 전역 상태 등 react 최적화에 따라 어떤 부분을 수정하면 좋을지 에러 및 디버깅해~\"` 하는 방식으로 클로드 코드에 프롬프트를 넣어서 해결하다보니 디테일한 부분을 인식하는 게 조금 잘 안되는 것 같습니다. 이런 디버깅 과정은 직접 하는 게 아무래도 능력 기르는데 더 도움이 될까요?? (직접 하게 되면 시간이 좀 오래 걸려서 스프린트 기한을 못맞출 것 같단 걱정도 있습니다) 아니면 \"이 코드는 정확히 어떤 조건에서 실행되는가\"를 말로 내뱉어보는 정도로도 괜찮을지 조언을 구하고 싶습니다!",
+    "created_at": "2026-09-18T06:33:04Z",
+    "updated_at": "2026-09-18T06:37:03Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4044369533",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044369533"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4044369533"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044369533/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 107,
+    "original_line": 76,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031586784,
+    "author_association": "MEMBER",
+    "original_position": 76,
+    "position": 107,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044715280",
+    "pull_request_review_id": 5245339086,
+    "id": 4044715280,
+    "node_id": "PRRC_kwDOT-Ei5M7xFXUQ",
+    "diff_hunk": "@@ -0,0 +1,10 @@\n+const KAKAO_AUTH_URL = 'https://kauth.kakao.com/oauth/authorize';\n+\n+export function buildKakaoAuthUrl(): string {\n+  const params = new URLSearchParams({\n+    client_id: import.meta.env.VITE_KAKAO_CLIENT_ID,\n+    redirect_uri: import.meta.env.VITE_KAKAO_REDIRECT_URI,\n+    response_type: 'code',\n+  });",
+    "path": "frontend/src/features/auth/kakaoAuth.ts",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "조언 감사합니다!",
+    "created_at": "2026-09-18T07:30:52Z",
+    "updated_at": "2026-09-18T07:30:53Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4044715280",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044715280"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4044715280"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4044715280/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 15,
+    "original_line": 8,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031548764,
+    "author_association": "MEMBER",
+    "original_position": 8,
+    "position": 15,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046160791",
+    "pull_request_review_id": 5247099899,
+    "id": 4046160791,
+    "node_id": "PRRC_kwDOT-Ei5M7xK4OX",
+    "diff_hunk": "@@ -1,11 +1,34 @@\n+\"\"\"환경변수 설정. 비밀키는 여기서만 읽는다 (backend/CLAUDE.md).\"\"\"\n+\n from pydantic_settings import BaseSettings, SettingsConfigDict\n \n \n class Settings(BaseSettings):\n-    model_config = SettingsConfigDict(env_file=\".env\", extra=\"ignore\")\n+    model_config = SettingsConfigDict(env_file=\".env\", env_file_encoding=\"utf-8\", extra=\"ignore\")\n \n     app_name: str = \"BASIS API\"\n     cors_origins: list[str] = [\"http://localhost:5173\"]\n+    database_url: str = \"postgresql+asyncpg://basis:basis@localhost:5432/basis\"\n+\n+    # 외부 API 키\n+    naver_client_id: str = \"\"\n+    naver_client_secret: str = \"\"\n+    kis_app_key: str = \"\"\n+    kis_app_secret: str = \"\"\n+    dart_api_key: str = \"\"\n+    ecos_api_key: str = \"\"\n+\n+    # 카카오 로그인\n+    kakao_client_id: str = \"\"\n+    kakao_client_secret: str = \"\"\n+    kakao_redirect_uri: str = \"\"\n+\n+    # 자체 세션(JWT)\n+    jwt_secret_key: str = \"\"\n+    jwt_algorithm: str = \"HS256\"\n+    jwt_expire_minutes: int = 20160  # 14일",
+    "path": "backend/app/core/config.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "`.env.example`의 주석에서 예시로 나와있는 JWT 토큰의 암호화 알고리즘인 HS256의 Secret Key 권장 최소 길이는 32바이트라서 최소 길이는 32자로 제한해두었습니다. 조언 감사합니다!",
+    "created_at": "2026-09-18T11:07:42Z",
+    "updated_at": "2026-09-18T11:07:51Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4046160791",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046160791"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4046160791"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046160791/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 30,
+    "original_line": 29,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031604250,
+    "author_association": "MEMBER",
+    "original_position": 30,
+    "position": 31,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046457641",
+    "pull_request_review_id": 5247459247,
+    "id": 4046457641,
+    "node_id": "PRRC_kwDOT-Ei5M7xMAsp",
+    "diff_hunk": "@@ -0,0 +1,32 @@\n+import httpx\n+\n+from app.core.config import settings\n+\n+BASE_URL = \"https://opendart.fss.or.kr/api\"\n+\n+\n+async def fetch_disclosure_list(corp_code: str, bgn_de: str, end_de: str) -> dict:\n+    \"\"\"GET /api/list.json — 공시 목록 조회.\"\"\"\n+    async with httpx.AsyncClient() as client:\n+        response = await client.get(\n+            f\"{BASE_URL}/list.json\",\n+            params={\n+                \"crtfc_key\": settings.dart_api_key,\n+                \"corp_code\": corp_code,\n+                \"bgn_de\": bgn_de,\n+                \"end_de\": end_de,\n+            },\n+        )\n+        response.raise_for_status()\n+        return response.json()",
+    "path": "backend/app/services/dart_client.py",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "조언해주신대로 수정했습니다. 추가적으로 dart의 고유번호 요청(GET /api/corpCode.xml) 응답의 경우, 출력 포맷이 Zip FILE (binary)이고 에러 응답은 xml 형식이라 HTTP 레벨에서는 정상으로 응답하여(HTTP 200) 현재 함수의 성공과 실패를 구분할 수 없는 문제점이 있었습니다. 이 문제에 대해서는 다음 주차 때 해당 정보를 실제로 사용하면 고치도록 하겠습니다!",
+    "created_at": "2026-09-18T11:53:07Z",
+    "updated_at": "2026-09-18T11:53:07Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4046457641",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046457641"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4046457641"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046457641/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 21,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031608753,
+    "author_association": "MEMBER",
+    "original_position": 21,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046643713",
+    "pull_request_review_id": 5247679333,
+    "id": 4046643713,
+    "node_id": "PRRC_kwDOT-Ei5M7xMuIB",
+    "diff_hunk": "@@ -0,0 +1,40 @@\n+from datetime import UTC, datetime\n+\n+from sqlalchemy import select\n+from sqlalchemy.ext.asyncio import AsyncSession\n+\n+from app.models import User\n+\n+\n+async def get_or_create_user(\n+    session: AsyncSession,\n+    *,\n+    kakao_id: str,\n+    nickname: str,\n+    email: str,\n+) -> User:\n+    #kakao_id 로 조회\n+    #없으면 새로 만들고 / 있으면 정보 불러옴\n+    user = (\n+        await session.execute(select(User).where(User.kakao_id == kakao_id))\n+    ).scalar_one_or_none()\n+\n+    if user is None:\n+        user = User(",
+    "path": "backend/app/repositories/user.py",
+    "commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "신규 가입이든 기존 로그인이든 흐름이 동일하여 DO UPDATE ... RETURNING 방식으로 진행했습니다. 테스트 관련 조언도 감사합니다!",
+    "created_at": "2026-09-18T12:19:06Z",
+    "updated_at": "2026-09-18T12:19:06Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4046643713",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046643713"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4046643713"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4046643713/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 23,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031567964,
+    "author_association": "MEMBER",
+    "original_position": 23,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4051047263",
+    "pull_request_review_id": 5253041236,
+    "id": 4051047263,
+    "node_id": "PRRC_kwDOT-Ei5M7xdhNf",
+    "diff_hunk": "@@ -1,18 +1,34 @@\n+from contextlib import asynccontextmanager\n+\n from fastapi import FastAPI\n from fastapi.exceptions import RequestValidationError\n from fastapi.middleware.cors import CORSMiddleware\n+from sqlalchemy import text\n from starlette.exceptions import HTTPException as StarletteHTTPException\n \n+import app.models\n from app.core.config import settings\n+from app.core.database import Base, engine\n from app.core.errors import (\n     AppError,\n     app_error_handler,\n     http_exception_handler,\n     unhandled_exception_handler,\n     validation_error_handler,\n )\n+from app.routers import concepts\n+from app.routers.auth import router as auth_router\n+\n+\n+@asynccontextmanager\n+async def lifespan(app: FastAPI):\n+    async with engine.begin() as conn:\n+        await conn.run_sync(Base.metadata.create_all)\n+    yield",
+    "path": "backend/app/main.py",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "jiw0nahn",
+      "id": 128668708,
+      "node_id": "U_kgDOB6tUJA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128668708?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/jiw0nahn",
+      "html_url": "https://github.com/jiw0nahn",
+      "followers_url": "https://api.github.com/users/jiw0nahn/followers",
+      "following_url": "https://api.github.com/users/jiw0nahn/following{/other_user}",
+      "gists_url": "https://api.github.com/users/jiw0nahn/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/jiw0nahn/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/jiw0nahn/subscriptions",
+      "organizations_url": "https://api.github.com/users/jiw0nahn/orgs",
+      "repos_url": "https://api.github.com/users/jiw0nahn/repos",
+      "events_url": "https://api.github.com/users/jiw0nahn/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/jiw0nahn/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "말씀해주신대로 마이그레이션 체계를 도입하기로 결정했습니다!\r\n그리고 누가 어떤 Schema 변경을 소유하는지를 명확하게 해야할 것 같아서 추후 더 논의해보도록 했습니다. 항상 정성스러운 리뷰 감사합니다. ",
+    "created_at": "2026-09-18T22:03:56Z",
+    "updated_at": "2026-09-18T22:04:06Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4051047263",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4051047263"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4051047263"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4051047263/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 27,
+    "original_line": 27,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031576807,
+    "author_association": "MEMBER",
+    "original_position": 27,
+    "position": 27,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053093957",
+    "pull_request_review_id": 5255632803,
+    "id": 4053093957,
+    "node_id": "PRRC_kwDOT-Ei5M7xlU5F",
+    "diff_hunk": "@@ -0,0 +1,79 @@\n+import { useEffect, useRef } from 'react';\n+import { CandlestickSeries, ColorType, HistogramSeries, createChart } from 'lightweight-charts';\n+import { cssVar } from '../chartColors';\n+import type { Candle } from '../mock';\n+\n+export function PriceVolumeChart({ candles }: { candles: Candle[] }) {\n+  const containerRef = useRef<HTMLDivElement>(null);\n+\n+  useEffect(() => {\n+    const el = containerRef.current;\n+    if (!el) return;\n+\n+    const up = cssVar('--color-up', 'crimson');\n+    const down = cssVar('--color-down', 'royalblue');\n+    const upFill = cssVar('--color-up-100', 'mistyrose');\n+    const downFill = cssVar('--color-down-100', 'aliceblue');\n+    const divider = cssVar('--color-divider', 'lightgray');\n+    const axisText = cssVar('--color-neutral-700', 'gray');\n+\n+    const chart = createChart(el, {\n+      width: el.clientWidth,\n+      height: 320,\n+      layout: {\n+        background: { type: ColorType.Solid, color: 'transparent' },\n+        textColor: axisText,\n+        attributionLogo: false,\n+      },\n+      grid: { vertLines: { visible: false }, horzLines: { color: divider } },\n+      rightPriceScale: { borderColor: divider },\n+      timeScale: { borderColor: divider },\n+    });\n+\n+    const priceSeries = chart.addSeries(CandlestickSeries, {\n+      upColor: up,\n+      downColor: down,\n+      borderVisible: false,\n+      wickUpColor: up,\n+      wickDownColor: down,\n+    });\n+    priceSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        open: c.open,\n+        high: c.high,\n+        low: c.low,\n+        close: c.close,\n+      })),\n+    );\n+\n+    const volumeSeries = chart.addSeries(HistogramSeries, {\n+      priceFormat: { type: 'volume' },\n+      priceScaleId: 'volume',\n+    });\n+    chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.75, bottom: 0 } });\n+    chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.05, bottom: 0.3 } });\n+    volumeSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        value: c.volume,\n+        color: c.close >= c.open ? upFill : downFill,\n+      })),\n+    );\n+\n+    chart.timeScale().fitContent();\n+\n+    // 너비만 바꾸면 기존 확대 배율이 그대로 남아 최근 구간만 보이고 왼쪽이 빈다. 리사이즈 때마다 다시 맞춘다.\n+    const handleResize = () => {\n+      chart.applyOptions({ width: el.clientWidth });\n+      chart.timeScale().fitContent();\n+    };\n+    window.addEventListener('resize', handleResize);\n+    return () => {\n+      window.removeEventListener('resize', handleResize);\n+      chart.remove();\n+    };\n+  }, [candles]);",
+    "path": "frontend/src/features/stock/components/PriceVolumeChart.tsx",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "좋은 질문입니다! 개인적으로는 AI를 안 쓰고 전부 직접 디버깅하는 것보다, **AI를 쓰더라도 먼저 본인이 실행 흐름을 한 번 설명해보는 습관**을 들이는 게 가장 효과적이라고 생각합니다.\r\n\r\n이번 케이스도 결국 핵심은 “이 코드는 언제 다시 실행되는가?”를 따라가보는 것이었습니다.\r\n\r\n예를 들어 React 코드를 볼 때는 먼저\r\n\r\n* 이 컴포넌트는 어떤 state/props 변화에서 다시 렌더되는가?\r\n* 렌더될 때 새로 만들어지는 객체나 배열은 무엇인가?\r\n* `useEffect` dependency 중 reference가 매번 바뀌는 값은 없는가?\r\n* effect가 다시 실행되면 cleanup에서는 무엇을 없애고, 다시 무엇을 만드는가?\r\n* 이 작업이 단순 계산인지, DOM/차트/네트워크처럼 비용이 큰 작업인지?\r\n\r\n정도만 말로 따라가봐도 이런 문제를 발견할 확률이 많이 올라갑니다.\r\n\r\n그래서 `\"React 최적화 관점에서 수정해줘\"`라고 바로 AI에게 맡기기보다는,\r\n\r\n1. 먼저 현재 코드가 어떤 조건에서 실행되는지 직접 설명해보기\r\n2. “여기가 불필요하게 다시 실행될 것 같다”는 가설을 하나 세우기\r\n3. React DevTools Profiler나 로그로 실제 실행 횟수를 확인하기\r\n4. 그다음 AI에게 가설 검증이나 개선 방법을 물어보기\r\n\r\n정도의 흐름을 추천합니다.\r\n\r\n이번에 `reportStatus` 쪽에서 비슷한 문제를 직접 추가로 발견하신 것도 좋은 흐름이라고 생각합니다. 이런 식으로 한 번 발견한 패턴을 다른 코드에도 적용해보는 게 결국 관찰력을 키우는 가장 빠른 방법이라고 생각합니다!\r\n",
+    "created_at": "2026-09-19T11:44:42Z",
+    "updated_at": "2026-09-19T11:44:59Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053093957",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053093957"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053093957"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053093957/reactions",
+      "total_count": 1,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 1,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 107,
+    "original_line": 76,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031586784,
+    "author_association": "MEMBER",
+    "original_position": 76,
+    "position": 107,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053095013",
+    "pull_request_review_id": 5255633953,
+    "id": 4053095013,
+    "node_id": "PRRC_kwDOT-Ei5M7xlVJl",
+    "diff_hunk": "@@ -0,0 +1,42 @@\n+import { useEffect, useState, type ReactNode } from 'react';\n+import { fetchMe, loginWithKakao as requestKakaoLogin, logout as requestLogout } from '@/lib/api';\n+import type { User } from '@/lib/types';\n+import { AuthContext, type AuthStatus } from './useAuth';\n+\n+// 앱 진입 시 GET /api/auth/me 로 세션을 복원\n+// 새로고침해도 로그인 상태가 유지\n+export function AuthProvider({ children }: { children: ReactNode }) {\n+  const [user, setUser] = useState<User | null>(null);\n+  const [status, setStatus] = useState<AuthStatus>('loading');\n+\n+  useEffect(() => {\n+    fetchMe()\n+      .then((me) => {\n+        setUser(me);\n+        setStatus('authenticated');\n+      })\n+      .catch(() => {\n+        setUser(null);\n+        setStatus('unauthenticated');",
+    "path": "frontend/src/features/auth/AuthProvider.tsx",
+    "commit_id": "88453a92043d571ad9e9edca46acb51b9e0aa17a",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "mingmingmon",
+      "id": 96719969,
+      "node_id": "U_kgDOBcPUYQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96719969?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mingmingmon",
+      "html_url": "https://github.com/mingmingmon",
+      "followers_url": "https://api.github.com/users/mingmingmon/followers",
+      "following_url": "https://api.github.com/users/mingmingmon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mingmingmon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mingmingmon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mingmingmon/subscriptions",
+      "organizations_url": "https://api.github.com/users/mingmingmon/orgs",
+      "repos_url": "https://api.github.com/users/mingmingmon/repos",
+      "events_url": "https://api.github.com/users/mingmingmon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mingmingmon/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "보통 현업에서도 에러를 무조건 정해진 4가지 종류로만 나눈다기보다는, **에러 종류에 따라 클라이언트가 취해야 할 행동이 달라지는 만큼** 세분화하는 편이라고 생각하시면 좋습니다.\r\n\r\n예를 들어 지금 `/me` 요청을 기준으로 보면 저는 우선 이렇게 생각할 것 같습니다.\r\n\r\n* `401 Unauthorized`: 인증 정보가 없거나 만료됨 → `unauthenticated`로 전환\r\n* `403 Forbidden`: 인증은 되었지만 해당 리소스에 대한 권한이 없음 → 401과는 별개의 권한 오류\r\n* `5xx`: 서버의 일시적인 문제 → 로그인 해제로 판단하지 않고 error/unknown 상태\r\n* timeout / network error: 서버 응답 자체를 확인하지 못함 → 역시 로그인 해제로 판단하지 않고 재시도 가능 상태\r\n* 기타 `4xx`: 요청 자체가 잘못된 경우 → 상황에 따라 별도 처리\r\n\r\n특히 `401`과 `403`은 구분해두는 게 좋습니다.\r\n`401`은 보통 **\"누구인지 인증되지 않았다\"**, `403`은 **\"누구인지는 알지만 이 작업을 할 권한이 없다\"**에 가깝기 때문에 UI에서 취할 행동도 달라질 수 있습니다.\r\n\r\n그렇다고 HTTP status code마다 전부 별도의 상태를 만들 필요는 없습니다. 예를 들어 500, 502, 503을 UI에서 모두 똑같이 \"일시적인 서버 오류, 재시도\"로 처리한다면 프론트에서는 하나의 `serverError` 범주로 묶어도 괜찮습니다.\r\n\r\n결국 기준은 **HTTP 코드가 몇 번이냐보다 사용자가 다음에 무엇을 해야 하느냐**라고 생각하면 좋습니다.\r\n\r\n예를 들어\r\n\r\n* 다시 로그인해야 한다\r\n* 잠시 후 재시도하면 된다\r\n* 권한이 없다고 안내해야 한다\r\n* 잘못된 입력을 수정해야 한다\r\n\r\n처럼 행동이 달라지는 지점에서 분류를 나누면 됩니다.\r\n\r\n그리고 규모가 커지면 모든 컴포넌트에서 `if status === 401 ...`을 반복하기보다는 HTTP client 계층에서 공통적인 에러 타입으로 한 번 변환하고, 각 feature에서는 필요한 것만 처리하는 구조도 많이 사용합니다.\r\n\r\n이번 `/me`의 경우에는 우선 `401 → unauthenticated`, `network/5xx → auth 상태를 확정하지 못한 error` 정도만 구분해도 충분해 보입니다. 처음부터 모든 가능성을 세밀하게 모델링하기보다 실제로 필요한 UX가 생길 때 분류를 추가하는 게 좋을 것 같습니다!\r\n",
+    "created_at": "2026-09-19T11:45:24Z",
+    "updated_at": "2026-09-19T11:45:24Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053095013",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053095013"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053095013"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053095013/reactions",
+      "total_count": 1,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 1,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 20,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031624597,
+    "author_association": "MEMBER",
+    "original_position": 20,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053500558",
+    "pull_request_review_id": 5256067467,
+    "id": 4053500558,
+    "node_id": "PRRC_kwDOT-Ei5M7xm4KO",
+    "diff_hunk": "@@ -0,0 +1,79 @@\n+import { useEffect, useRef } from 'react';\n+import { CandlestickSeries, ColorType, HistogramSeries, createChart } from 'lightweight-charts';\n+import { cssVar } from '../chartColors';\n+import type { Candle } from '../mock';\n+\n+export function PriceVolumeChart({ candles }: { candles: Candle[] }) {\n+  const containerRef = useRef<HTMLDivElement>(null);\n+\n+  useEffect(() => {\n+    const el = containerRef.current;\n+    if (!el) return;\n+\n+    const up = cssVar('--color-up', 'crimson');\n+    const down = cssVar('--color-down', 'royalblue');\n+    const upFill = cssVar('--color-up-100', 'mistyrose');\n+    const downFill = cssVar('--color-down-100', 'aliceblue');\n+    const divider = cssVar('--color-divider', 'lightgray');\n+    const axisText = cssVar('--color-neutral-700', 'gray');\n+\n+    const chart = createChart(el, {\n+      width: el.clientWidth,\n+      height: 320,\n+      layout: {\n+        background: { type: ColorType.Solid, color: 'transparent' },\n+        textColor: axisText,\n+        attributionLogo: false,\n+      },\n+      grid: { vertLines: { visible: false }, horzLines: { color: divider } },\n+      rightPriceScale: { borderColor: divider },\n+      timeScale: { borderColor: divider },\n+    });\n+\n+    const priceSeries = chart.addSeries(CandlestickSeries, {\n+      upColor: up,\n+      downColor: down,\n+      borderVisible: false,\n+      wickUpColor: up,\n+      wickDownColor: down,\n+    });\n+    priceSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        open: c.open,\n+        high: c.high,\n+        low: c.low,\n+        close: c.close,\n+      })),\n+    );\n+\n+    const volumeSeries = chart.addSeries(HistogramSeries, {\n+      priceFormat: { type: 'volume' },\n+      priceScaleId: 'volume',\n+    });\n+    chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.75, bottom: 0 } });\n+    chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.05, bottom: 0.3 } });\n+    volumeSeries.setData(\n+      candles.map((c) => ({\n+        time: c.time,\n+        value: c.volume,\n+        color: c.close >= c.open ? upFill : downFill,\n+      })),\n+    );\n+\n+    chart.timeScale().fitContent();\n+\n+    // 너비만 바꾸면 기존 확대 배율이 그대로 남아 최근 구간만 보이고 왼쪽이 빈다. 리사이즈 때마다 다시 맞춘다.\n+    const handleResize = () => {\n+      chart.applyOptions({ width: el.clientWidth });\n+      chart.timeScale().fitContent();\n+    };\n+    window.addEventListener('resize', handleResize);\n+    return () => {\n+      window.removeEventListener('resize', handleResize);\n+      chart.remove();\n+    };\n+  }, [candles]);",
+    "path": "frontend/src/features/stock/components/PriceVolumeChart.tsx",
+    "commit_id": "b3ec961f4cdec8bd64230fff6603351a7be4dbe7",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "답변 감사합니다!!",
+    "created_at": "2026-09-19T14:52:05Z",
+    "updated_at": "2026-09-19T14:52:06Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053500558",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053500558"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053500558"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053500558/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 107,
+    "original_line": 76,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031586784,
+    "author_association": "MEMBER",
+    "original_position": 76,
+    "position": 107,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053523017",
+    "pull_request_review_id": 5256094655,
+    "id": 4053523017,
+    "node_id": "PRRC_kwDOT-Ei5M7xm9pJ",
+    "diff_hunk": "@@ -0,0 +1,42 @@\n+import { useEffect, useState, type ReactNode } from 'react';\n+import { fetchMe, loginWithKakao as requestKakaoLogin, logout as requestLogout } from '@/lib/api';\n+import type { User } from '@/lib/types';\n+import { AuthContext, type AuthStatus } from './useAuth';\n+\n+// 앱 진입 시 GET /api/auth/me 로 세션을 복원\n+// 새로고침해도 로그인 상태가 유지\n+export function AuthProvider({ children }: { children: ReactNode }) {\n+  const [user, setUser] = useState<User | null>(null);\n+  const [status, setStatus] = useState<AuthStatus>('loading');\n+\n+  useEffect(() => {\n+    fetchMe()\n+      .then((me) => {\n+        setUser(me);\n+        setStatus('authenticated');\n+      })\n+      .catch(() => {\n+        setUser(null);\n+        setStatus('unauthenticated');",
+    "path": "frontend/src/features/auth/AuthProvider.tsx",
+    "commit_id": "88453a92043d571ad9e9edca46acb51b9e0aa17a",
+    "original_commit_id": "9e8dd0965e7a239a3d4bc57c531adce8088cda26",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "기존 코드 바탕으로 예시와 함께 설명해주셔서 감사합니다!",
+    "created_at": "2026-09-19T15:00:05Z",
+    "updated_at": "2026-09-19T15:00:05Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053523017",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053523017"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/19#discussion_r4053523017"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/19"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4053523017/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 20,
+    "side": "RIGHT",
+    "in_reply_to_id": 4031624597,
+    "author_association": "MEMBER",
+    "original_position": 20,
+    "position": 1,
+    "subject_type": "line"
+  }
+]

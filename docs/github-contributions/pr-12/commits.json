@@ -1,0 +1,84 @@
+[
+  {
+    "sha": "ec3273ef85f852db61c3844d1cc6dad98b86a090",
+    "node_id": "C_kwDOT-Ei5NoAKGVjMzI3M2VmODVmODUyZGI2MWMzODQ0ZDFjYzZkYWQ5OGI4NmEwOTA",
+    "commit": {
+      "author": {
+        "name": "jiw0nahn",
+        "email": "wldnjs7805@naver.com",
+        "date": "2026-09-15T13:08:22Z"
+      },
+      "committer": {
+        "name": "jiw0nahn",
+        "email": "wldnjs7805@naver.com",
+        "date": "2026-09-15T13:08:22Z"
+      },
+      "message": "feat(backend): AI 리포트 저장용 DB 스키마 초안 추가 (channel/source_card/report/report_block/report_citation)",
+      "tree": {
+        "sha": "27158fae9fb01b8e017b10bf8d1bd956158338c5",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/trees/27158fae9fb01b8e017b10bf8d1bd956158338c5"
+      },
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/git/commits/ec3273ef85f852db61c3844d1cc6dad98b86a090",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ec3273ef85f852db61c3844d1cc6dad98b86a090",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/ec3273ef85f852db61c3844d1cc6dad98b86a090",
+    "comments_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/ec3273ef85f852db61c3844d1cc6dad98b86a090/comments",
+    "author": {
+      "login": "jiw0nahn",
+      "id": 128668708,
+      "node_id": "U_kgDOB6tUJA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128668708?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/jiw0nahn",
+      "html_url": "https://github.com/jiw0nahn",
+      "followers_url": "https://api.github.com/users/jiw0nahn/followers",
+      "following_url": "https://api.github.com/users/jiw0nahn/following{/other_user}",
+      "gists_url": "https://api.github.com/users/jiw0nahn/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/jiw0nahn/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/jiw0nahn/subscriptions",
+      "organizations_url": "https://api.github.com/users/jiw0nahn/orgs",
+      "repos_url": "https://api.github.com/users/jiw0nahn/repos",
+      "events_url": "https://api.github.com/users/jiw0nahn/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/jiw0nahn/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "jiw0nahn",
+      "id": 128668708,
+      "node_id": "U_kgDOB6tUJA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128668708?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/jiw0nahn",
+      "html_url": "https://github.com/jiw0nahn",
+      "followers_url": "https://api.github.com/users/jiw0nahn/followers",
+      "following_url": "https://api.github.com/users/jiw0nahn/following{/other_user}",
+      "gists_url": "https://api.github.com/users/jiw0nahn/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/jiw0nahn/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/jiw0nahn/subscriptions",
+      "organizations_url": "https://api.github.com/users/jiw0nahn/orgs",
+      "repos_url": "https://api.github.com/users/jiw0nahn/repos",
+      "events_url": "https://api.github.com/users/jiw0nahn/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/jiw0nahn/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "633f7a77fb5ca6bd2b8173f067b608bb67c3b73e",
+        "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/commits/633f7a77fb5ca6bd2b8173f067b608bb67c3b73e",
+        "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/commit/633f7a77fb5ca6bd2b8173f067b608bb67c3b73e"
+      }
+    ]
+  }
+]

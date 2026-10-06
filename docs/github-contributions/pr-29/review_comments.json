@@ -1,0 +1,141 @@
+[
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071858291",
+    "pull_request_review_id": 5278360330,
+    "id": 4071858291,
+    "node_id": "PRRC_kwDOT-Ei5M7ys6Bz",
+    "diff_hunk": "@@ -0,0 +1,151 @@\n+\"\"\"기사 HTML → (제목, 정제된 본문).\n+\n+**문단 단위로 모은다.** 기사 영역을 통째로 get_text 하면 바이라인·음성재생 UI\n+문구·공유 버튼 텍스트가 앞에 붙어서 첫 문장이 그 쓰레기가 된다.\n+\n+`article_paragraphs` 와 `extract_body` 를 나눠 둔 것은 **정제 전 문단**을 봐야 하는\n+쪽이 있기 때문이다. 정제된 결과만 돌려주면 \"무엇이 지워졌는지\" 를 보여줄 수가 없고,\n+그게 안 보이면 clean.py 의 규칙을 손볼 수 없다.\n+\n+backend 는 같은 일을 trafilatura 로 한다. 여기서 bs4 를 쓰는 것은 기사 영역\n+선택자를 우리가 직접 쥐고 있어야 하기 때문이다 — 텔레그램에 올라오는 링크는 국내\n+매체·증권사 블로그·외신이 섞여서, 실패하면 어느 선택자를 고쳐야 하는지 보여야 한다.\n+\"\"\"\n+\n+import re\n+\n+from bs4 import BeautifulSoup\n+\n+from app.services.news_link.clean import clean_paragraphs\n+\n+ARTICLE_SELECTORS = [\n+    \"#dic_area\", \"#newsct_article\",  # 네이버 뉴스\n+    \"div.se-main-container\",  # 네이버 블로그 (스마트에디터)\n+    \"#articleBodyContents\", \"div#harmonyContainer\",\n+    \"[itemprop=articleBody]\", \"div.article-body\", \"div.article_body\",\n+    \"div.news_end\", \"#CmAdContent\", \"div.paragraph\",  # YTN\n+    \"article\",\n+]\n+PARA_SELECTORS = \"p, div.se-text-paragraph\"\n+\n+# 문단으로 셀 만큼 긴가. **내용 판단은 여기서 하지 않는다.** 광고·저작권·바이라인\n+# 같은 \"기사가 아닌 것\" 은 clean.py 가 전담한다. 두 군데서 나눠 판단하면 규칙이\n+# 갈라져, 어느 쪽을 고쳐야 하는지 모르게 된다.\n+MIN_PARA_CHARS = 25\n+\n+\n+def _squash(text: str) -> str:\n+    return re.sub(r\"[ \\t\\xa0]+\", \" \", text).strip()\n+\n+\n+def _keep_para(text: str) -> bool:\n+    return len(text) >= MIN_PARA_CHARS\n+\n+\n+def _common_ancestor(nodes: list) -> object | None:\n+    \"\"\"노드들을 모두 품는 가장 가까운 조상. 하나도 없으면 None.\"\"\"\n+    if not nodes:\n+        return None\n+    chain = [nodes[0], *nodes[0].parents]\n+    for node in nodes[1:]:\n+        other = {id(parent) for parent in [node, *node.parents]}\n+        chain = [parent for parent in chain if id(parent) in other]\n+        if not chain:\n+            return None\n+    return chain[0]\n+\n+\n+def article_paragraphs(html_text: str) -> tuple[str, list[str], int]:",
+    "path": "ai/app/services/news_link/extract.py",
+    "commit_id": "c3ac3294acabdf939a41936a223858f56a70156b",
+    "original_commit_id": "bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+    "user": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "함수의 리턴값 중 마지막 정수가 무슨 의미인지 파악하기 어려운 것 같습니다..\n리턴하는 값이 1과 2뿐인걸로 확인했는데 상수로 선언해주시면 코드 이해하기 더 편할 것 같습니다..!",
+    "created_at": "2026-09-22T12:59:25Z",
+    "updated_at": "2026-09-22T12:59:25Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/29#discussion_r4071858291",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/29",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071858291"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/29#discussion_r4071858291"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/29"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071858291/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 79,
+    "original_line": 58,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 58,
+    "position": 79,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4072126059",
+    "pull_request_review_id": 5278685737,
+    "id": 4072126059,
+    "node_id": "PRRC_kwDOT-Ei5M7yt7Zr",
+    "diff_hunk": "@@ -0,0 +1,151 @@\n+\"\"\"기사 HTML → (제목, 정제된 본문).\n+\n+**문단 단위로 모은다.** 기사 영역을 통째로 get_text 하면 바이라인·음성재생 UI\n+문구·공유 버튼 텍스트가 앞에 붙어서 첫 문장이 그 쓰레기가 된다.\n+\n+`article_paragraphs` 와 `extract_body` 를 나눠 둔 것은 **정제 전 문단**을 봐야 하는\n+쪽이 있기 때문이다. 정제된 결과만 돌려주면 \"무엇이 지워졌는지\" 를 보여줄 수가 없고,\n+그게 안 보이면 clean.py 의 규칙을 손볼 수 없다.\n+\n+backend 는 같은 일을 trafilatura 로 한다. 여기서 bs4 를 쓰는 것은 기사 영역\n+선택자를 우리가 직접 쥐고 있어야 하기 때문이다 — 텔레그램에 올라오는 링크는 국내\n+매체·증권사 블로그·외신이 섞여서, 실패하면 어느 선택자를 고쳐야 하는지 보여야 한다.\n+\"\"\"\n+\n+import re\n+\n+from bs4 import BeautifulSoup\n+\n+from app.services.news_link.clean import clean_paragraphs\n+\n+ARTICLE_SELECTORS = [\n+    \"#dic_area\", \"#newsct_article\",  # 네이버 뉴스\n+    \"div.se-main-container\",  # 네이버 블로그 (스마트에디터)\n+    \"#articleBodyContents\", \"div#harmonyContainer\",\n+    \"[itemprop=articleBody]\", \"div.article-body\", \"div.article_body\",\n+    \"div.news_end\", \"#CmAdContent\", \"div.paragraph\",  # YTN\n+    \"article\",\n+]\n+PARA_SELECTORS = \"p, div.se-text-paragraph\"\n+\n+# 문단으로 셀 만큼 긴가. **내용 판단은 여기서 하지 않는다.** 광고·저작권·바이라인\n+# 같은 \"기사가 아닌 것\" 은 clean.py 가 전담한다. 두 군데서 나눠 판단하면 규칙이\n+# 갈라져, 어느 쪽을 고쳐야 하는지 모르게 된다.\n+MIN_PARA_CHARS = 25\n+\n+\n+def _squash(text: str) -> str:\n+    return re.sub(r\"[ \\t\\xa0]+\", \" \", text).strip()\n+\n+\n+def _keep_para(text: str) -> bool:\n+    return len(text) >= MIN_PARA_CHARS\n+\n+\n+def _common_ancestor(nodes: list) -> object | None:\n+    \"\"\"노드들을 모두 품는 가장 가까운 조상. 하나도 없으면 None.\"\"\"\n+    if not nodes:\n+        return None\n+    chain = [nodes[0], *nodes[0].parents]\n+    for node in nodes[1:]:\n+        other = {id(parent) for parent in [node, *node.parents]}\n+        chain = [parent for parent in chain if id(parent) in other]\n+        if not chain:\n+            return None\n+    return chain[0]\n+\n+\n+def article_paragraphs(html_text: str) -> tuple[str, list[str], int]:",
+    "path": "ai/app/services/news_link/extract.py",
+    "commit_id": "c3ac3294acabdf939a41936a223858f56a70156b",
+    "original_commit_id": "bec024db94cc6ae0bf17e19ccd7766d092d1274f",
+    "user": {
+      "login": "swimny",
+      "id": 164615172,
+      "node_id": "U_kgDOCc_UBA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/164615172?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/swimny",
+      "html_url": "https://github.com/swimny",
+      "followers_url": "https://api.github.com/users/swimny/followers",
+      "following_url": "https://api.github.com/users/swimny/following{/other_user}",
+      "gists_url": "https://api.github.com/users/swimny/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/swimny/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/swimny/subscriptions",
+      "organizations_url": "https://api.github.com/users/swimny/orgs",
+      "repos_url": "https://api.github.com/users/swimny/repos",
+      "events_url": "https://api.github.com/users/swimny/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/swimny/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "말씀주신 부분 포함 매직넘버 해당 부분들을 상수로 정리했습니다.",
+    "created_at": "2026-09-22T13:24:26Z",
+    "updated_at": "2026-09-22T13:24:26Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/29#discussion_r4072126059",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/29",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4072126059"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/29#discussion_r4072126059"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/29"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4072126059/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 79,
+    "original_line": 58,
+    "side": "RIGHT",
+    "in_reply_to_id": 4071858291,
+    "author_association": "MEMBER",
+    "original_position": 58,
+    "position": 79,
+    "subject_type": "line"
+  }
+]

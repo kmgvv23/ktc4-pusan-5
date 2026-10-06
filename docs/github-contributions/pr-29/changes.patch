@@ -1,0 +1,1918 @@
+From 9a8865367b76b8fb73e6cafa505c3d420ab5119f Mon Sep 17 00:00:00 2001
+From: swimny <rlatnud052985@gmail.com>
+Date: Tue, 22 Sep 2026 19:33:29 +0900
+Subject: [PATCH 1/3] =?UTF-8?q?feat(ai):=20=EB=89=B4=EC=8A=A4=20=EB=A7=81?=
+ =?UTF-8?q?=ED=81=AC=20=EB=B3=B8=EB=AC=B8=20=EC=88=98=EC=A7=91=20tool=20?=
+ =?UTF-8?q?=EC=B6=94=EA=B0=80?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ ai/app/services/__init__.py           |   0
+ ai/app/services/news_link/__init__.py |  15 ++
+ ai/app/services/news_link/__main__.py | 140 +++++++++++++++++
+ ai/app/services/news_link/clean.py    | 147 +++++++++++++++++
+ ai/app/services/news_link/extract.py  | 151 ++++++++++++++++++
+ ai/app/services/news_link/fetch.py    | 217 ++++++++++++++++++++++++++
+ ai/app/services/news_link/schema.py   |  45 ++++++
+ ai/app/services/news_link/sentence.py |  57 +++++++
+ ai/pyproject.toml                     |   5 +
+ ai/tests/test_news_link_clean.py      |  67 ++++++++
+ ai/tests/test_news_link_fetch.py      | 162 +++++++++++++++++++
+ ai/tests/test_news_link_sentence.py   |  62 ++++++++
+ ai/uv.lock                            |  96 ++++++++++++
+ 13 files changed, 1164 insertions(+)
+ create mode 100644 ai/app/services/__init__.py
+ create mode 100644 ai/app/services/news_link/__init__.py
+ create mode 100644 ai/app/services/news_link/__main__.py
+ create mode 100644 ai/app/services/news_link/clean.py
+ create mode 100644 ai/app/services/news_link/extract.py
+ create mode 100644 ai/app/services/news_link/fetch.py
+ create mode 100644 ai/app/services/news_link/schema.py
+ create mode 100644 ai/app/services/news_link/sentence.py
+ create mode 100644 ai/tests/test_news_link_clean.py
+ create mode 100644 ai/tests/test_news_link_fetch.py
+ create mode 100644 ai/tests/test_news_link_sentence.py
+
+diff --git a/ai/app/services/__init__.py b/ai/app/services/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/ai/app/services/news_link/__init__.py b/ai/app/services/news_link/__init__.py
+new file mode 100644
+index 0000000..60c07c5
+--- /dev/null
++++ b/ai/app/services/news_link/__init__.py
+@@ -0,0 +1,15 @@
++"""뉴스 링크 본문 수집.
++
++    from app.services.news_link import fetch_link_bodies
++
++    bodies = await fetch_link_bodies(urls)      # 텔레그램 메시지에 적힌 주소들
++
++텔레그램 채널 수집(t.me/s/ 또는 Telethon)은 여기 없다. 이 패키지는 **주소 목록을
++받아 본문 앞부분을 돌려주는 일**만 한다. 채널을 붙이는 쪽이 정해지면
++collectors/ 에서 이걸 불러 쓰면 된다.
++"""
++
++from app.services.news_link.fetch import fetch_link, fetch_link_bodies, is_fetchable
++from app.services.news_link.schema import LinkBody, LinkStatus
++
++__all__ = ["LinkBody", "LinkStatus", "fetch_link", "fetch_link_bodies", "is_fetchable"]
+diff --git a/ai/app/services/news_link/__main__.py b/ai/app/services/news_link/__main__.py
+new file mode 100644
+index 0000000..cb029ee
+--- /dev/null
++++ b/ai/app/services/news_link/__main__.py
+@@ -0,0 +1,140 @@
++"""터미널에서 링크 하나를 열어 눈으로 확인한다. DB 를 쓰지 않는다.
++
++    uv run python -m app.services.news_link https://n.news.naver.com/article/001/000
++    uv run python -m app.services.news_link <주소> --paragraphs   # 어느 규칙이 무엇을 지웠는지
++    uv run python -m app.services.news_link --rules               # 규칙 목록 (네트워크 없음)
++
++정제 규칙을 손볼 때 이게 있어야 한다. 무엇이 지워졌는지 안 보이면 규칙을 고칠 수가 없다.
++(backend `services/news/__main__.py` 와 같은 자리다.)
++"""
++
++import argparse
++import asyncio
++import unicodedata
++
++import httpx
++
++from app.services.news_link.clean import DROP_RULES, TRIM_RULES, clean_paragraphs
++from app.services.news_link.extract import article_paragraphs, finish
++from app.services.news_link.fetch import (
++    DEFAULT_MAX_CHARS,
++    DEFAULT_SENTENCES,
++    DEFAULT_TIMEOUT_SEC,
++    HEADERS,
++    HTML_TYPES,
++    decode_html,
++    fetch_link,
++)
++from app.services.news_link.sentence import first_sentences
++
++
++def pad(text: str, width: int) -> str:
++    """터미널 칸 수를 맞춘다. 한글·전각 문자는 두 칸을 먹어서 f-string 의 `<n` 이 어긋난다."""
++    used = sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
++    return text + " " * max(width - used, 1)
++
++
++def show_rules() -> None:
++    """규칙 목록.
++
++    칸 이름을 '동작 / 범위' 에서 '지우는 것 / 검사 위치' 로 바꿨다. 앞의 것은
++    "머리" 가 지우는 양인지 검사하는 자리인지 읽는 사람마다 달리 읽혔다.
++    """
++    print("지우는 것   문단 전체 = 그 문단을 통째로 지움 / 앞부분만 = 앞을 떼고 나머지 문장은 남김")
++    print("검사 위치   기사 전체 = 어느 위치에서든 검사 / 본문 시작 전 = 첫 문장이 나오기 전까지만 검사")
++    print()
++    print(pad("규칙", 16) + pad("지우는 것", 12) + pad("검사 위치", 15) + "설명")
++    print("-" * 78)
++    rows = [(n, "문단 전체", "기사 전체" if s == "any" else "본문 시작 전", w)
++            for n, w, s, _p in DROP_RULES]
++    rows.append(("title_echo", "문단 전체", "본문 시작 전", "제목을 본문에 한 번 더 실은 것"))
++    rows.append(("subhead", "문단 전체", "본문 시작 전", "종결부호 없는 짧은 줄 = 제목·부제"))
++    rows += [(n, "앞부분만", "기사 전체", w) for n, w, _p in TRIM_RULES]
++    for name, what, where, why in rows:
++        print(pad(name, 16) + pad(what, 12) + pad(where, 15) + why)
++
++
++async def show_paragraphs(url: str, sentences: int, max_chars: int) -> None:
++    """정제 전 문단을 문단마다 보여준다. 어느 규칙이 걸렸는지 눈으로 본다."""
++    async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SEC, headers=HEADERS) as client:
++        response = await client.get(url, follow_redirects=True)
++
++    print(f"=== {response.url}")
++    # 여기서 안 막으면 401 페이지·PDF 를 파싱해놓고 "문단을 못 찾았다" 고 말한다.
++    # 정제 규칙 탓이 아닌데 규칙을 고치러 가게 된다.
++    raw_content_type = response.headers.get("content-type") or ""
++    if response.status_code != 200:
++        print(f"HTTP {response.status_code} — 기사 페이지가 아닙니다. 정제 규칙과 무관합니다.")
++        return
++    if raw_content_type.split(";")[0].strip().lower() not in HTML_TYPES:
++        print(f"HTML 이 아닙니다 ({raw_content_type}). 정제 규칙과 무관합니다.")
++        return
++
++    html_text = decode_html(response.content, raw_content_type)
++    title, paragraphs, min_paras = article_paragraphs(html_text)
++
++    print(f"제목: {title}\n")
++    if not paragraphs:
++        print("본문 문단을 찾지 못했습니다. extract.py 의 ARTICLE_SELECTORS 를 확인하세요.")
++        return
++    kept, log = clean_paragraphs(paragraphs, title)
++    # 규칙 두 종류를 갈라서 본다. 앞머리 규칙은 log 에 **지운 앞머리**가 남고,
++    # 버리는 규칙은 **문단 전체**가 남는다. 섞어 놓으면 어느 쪽인지 알 수 없다.
++    trim_names = {name for name, _why, _p in TRIM_RULES}
++    dropped = {what: name for name, what in log if name not in trim_names}
++    trims = [(what, name) for name, what in log if name in trim_names]
++    for i, paragraph in enumerate(paragraphs[:14], 1):
++        mark = dropped.get(paragraph)
++        if mark:
++            print(f"  {i:>2} − [{mark}] {paragraph[:100]}")
++            continue
++        # 지운 앞머리로 되짚는다. 남은 문단들 중에서 endswith 로 찾으면
++        # 다른 문단이 우연히 접미사일 때 엉뚱한 것을 짚는다.
++        hit = next(((what, name) for what, name in trims if paragraph.startswith(what)), None)
++        if hit:
++            head, name = hit
++            print(f"  {i:>2} ✂ [{name}] {head}")
++            print(f"       ✓ {paragraph[len(head) :].strip()[:96]}")
++        else:
++            print(f"  {i:>2} ✓ {paragraph[:100]}")
++
++    body = finish(title, paragraphs, min_paras)
++    print(f"\n정제 후 앞 {sentences}문장 ({len(paragraphs)}문단 → {len(kept)}문단):")
++    excerpt = first_sentences(body, sentences, max_chars) if body else ""
++    print("  " + (excerpt.replace("\n", "\n  ") if excerpt else "(남는 본문이 없습니다)"))
++
++
++async def show_link(url: str, sentences: int, max_chars: int) -> None:
++    async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SEC, headers=HEADERS) as client:
++        body = await fetch_link(client, url, sentences=sentences, max_chars=max_chars)
++    print(f"status   {body.status}{f' ({body.error})' if body.error else ''}")
++    print(f"도메인   {body.domain}")
++    print(f"최종주소 {body.final_url}")
++    print(f"제목     {body.title}")
++    print(f"발췌     {body.chars}자")
++    if body.excerpt:
++        print("  " + body.excerpt.replace("\n", "\n  "))
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("url", nargs="?")
++    parser.add_argument("--sentences", type=int, default=DEFAULT_SENTENCES)
++    parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
++    parser.add_argument("--paragraphs", action="store_true", help="문단마다 걸린 규칙을 보여준다")
++    parser.add_argument("--rules", action="store_true", help="규칙 목록 (네트워크 없음)")
++    args = parser.parse_args()
++
++    if args.rules:
++        show_rules()
++        return
++    if not args.url:
++        parser.error("url 을 주거나 --rules 를 쓰세요")
++    if args.paragraphs:
++        asyncio.run(show_paragraphs(args.url, args.sentences, args.max_chars))
++    else:
++        asyncio.run(show_link(args.url, args.sentences, args.max_chars))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/ai/app/services/news_link/clean.py b/ai/app/services/news_link/clean.py
+new file mode 100644
+index 0000000..8e3d902
+--- /dev/null
++++ b/ai/app/services/news_link/clean.py
+@@ -0,0 +1,147 @@
++"""기사 본문에서 기사가 아닌 것을 걷어낸다. extract.py 가 import 해서 쓴다.
++
++왜 따로 떼어냈나. 프로토타입에서 확보한 본문 22건을 훑어보니 **9건(41%)에 기사가
++아닌 것이 섞여 있었다.** 앞 3문장만 싣는데 그중 한두 칸을 이런 것이 차지한다.
++
++    ft.com                   "Save now on essential digital access… Then ₩79999 per month."
++    counterpointresearch.com "Counterpoint Research는 …리서치 기업입니다"
++    techpowerup.com          "Thursday, September 17th 2026" / 제목 한 줄
++    yna.co.kr                "(서울=연합뉴스) 이도흔 기자 = " 뒤에야 본문이 시작된다
++
++어느 매체가 언제 썼는지는 이미 `domain` 과 메시지 게시 시각에 있다. 본문에서 또
++받을 이유가 없고, 3문장 중 한 칸을 내줄 값어치는 더더욱 없다.
++
++**규칙은 두 가지만 쓴다. 지우거나, 앞머리를 떼거나.** 문장을 다시 쓰거나 중간을
++이어붙이지 않는다. 남는 글자가 원문 그대로여야 나중에 모델의 인용을 원문과 문자열로
++대조할 수 있다. 문단을 통째로 빼고 앞머리를 떼는 것은 남는 글자를 건드리지 않으므로
++그 성질이 유지된다.
++
++**머리 규칙(lead)은 본문 첫 문장을 만나기 전까지만 적용한다.** 기사 중간의 소제목까지
++지우면 떨어져 있던 문장이 붙어서, 원문에 없던 흐름이 만들어진다.
++
++backend 의 `services/news/clean.py` 와 목적이 다르다. 그쪽은 LLM 요약에 넣을 입력을
++만드느라 공백을 합치고 3000자에서 자른다. 여기는 인용 대조를 살리려고 남는 글자를
++한 자도 바꾸지 않는다. 두 소스를 한 정제기로 합치는 문제는 아직 팀 논의 중이다.
++"""
++
++import re
++
++# 문장이 끝났다고 볼 표시. 한국어 기사는 "…다." "…습니다." 로 끝난다.
++# **중국어·일본어 마침표(。)를 빠뜨리면 안 된다.** 처음에 빠뜨렸더니 udn.com 의
++# 멀쩡한 중국어 문단 두 개가 "종결부호 없는 짧은 줄" 로 몰려 부제 취급을 받았다.
++SENT_TAIL_RE = re.compile(
++    r"[.!?。！？][\"'”’)\]」』）】]*$"  # 종결부호로 끝난다 (닫는 따옴표·괄호까지 허용)
++    r"|"
++    r"[다요음임함]\.?$"  # 마침표를 안 찍는 한국어 기사체 ("…라고 밝혔다")
++)
++
++# (이름, 설명, 적용범위, 정규식)
++#   범위 "any"     어디서든 그 문단을 버린다
++#   범위 "lead"    **본문 첫 문장을 만나기 전까지만** 버린다
++DROP_RULES: list[tuple[str, str, str, str]] = [
++    ("copyright", "저작권·재배포 안내", "any",
++     r"무단\s*전재|저작권자|재배포\s*금지|Copyright\s*©|All rights reserved"),
++    ("subscribe", "구독·제보 안내", "any",
++     r"구독하기|구독\s*신청|제보는|앱\s*다운|뉴스레터|Subscribe to|Sign up for"),
++    ("paywall", "유료 구독 광고", "any",
++     (r"Save now on|per month|per year|cancel anytime|무료\s*체험|"
++      r"디지털\s*구독|Then\s*[₩$€£]")),
++    ("aisummary", "AI 자동요약 안내", "any",
++     r"자동\s*생성한\s*요약|AI가\s*자동\s*생성|AI\s*핵심\s*요약"),
++    ("promo", "매체 홍보·공유 버튼", "any",
++     r"다음뉴스|네이버에서\s|기사\s*공유|선호\s*출처로\s*추가|많이\s*본\s*뉴스"),
++    ("about", "회사 소개문 (기사가 아님)", "any",
++     r"리서치\s*기업입니다|리서치를\s*모두\s*제공|About\s+us\b|회사\s*소개"),
++    ("blocked", "자바스크립트·광고차단 안내", "any",
++     r"enable\s+JS|ad\s?block|Please enable|브라우저를\s*업데이트"),
++    ("caption", "사진 설명·광고 자리", "any",
++     r"^(이미지\s*확대|사진\s*=|\[사진|AD|▲)"),
++    ("section", "기사 중간 소제목", "any", r"^[◆■▶●▣※]\s*"),
++    # 이메일이 들어 있는 짧은 줄은 본문 문장이 아니라 서명이다. "기자" 라는 낱말에
++    # 기대면 "YTN 권영희 (kwonyh@ytn.co.kr)" 처럼 직함 없는 서명을 놓친다.
++    ("contact", "기자 서명·연락처 줄", "any",
++     r"^(?=.{0,70}$).*[\w.\-]+@[\w.\-]+\.\w{2,}"),
++    ("dateline", "작성·수정 시각", "lead",
++     (r"^((Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day|"
++      r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d|"
++      r"\d{4}[.\-년]\s?\d{1,2}|기사입력|최종수정|입력\s*\d{4})")),
++]
++
++# 앞머리만 떼어낸다. 뒤에 남는 문장은 한 글자도 건드리지 않는다.
++TRIM_RULES: list[tuple[str, str, str]] = [
++    ("byline_paren", "(서울=연합뉴스) OOO 기자 =",
++     r"^\([^)]{1,24}\)\s*\S{1,12}\s*(기자|특파원)\s*=\s*"),
++    ("byline_bracket", "[서울=뉴스핌] OOO 기자 =",
++     r"^\[[^\]]{1,24}\]\s*\S{1,12}\s*(기자|특파원)\s*=\s*"),
++    ("byline_inline", "[더바이오 OOO 기자]", r"^\[[^\]]{1,30}(기자|특파원)\]\s*"),
++    ("headmark", "[단독] [속보] 같은 머리표", r"^\[(단독|속보|종합|르포|인터뷰|기획)\d?\]\s*"),
++]
++
++DROP_RE = [(n, why, scope, re.compile(p, re.IGNORECASE)) for n, why, scope, p in DROP_RULES]
++TRIM_RE = [(n, why, re.compile(p)) for n, why, p in TRIM_RULES]
++
++# 머리에서 지울 짧은 비문장. 제목·부제가 여기 걸린다.
++# 종결부호가 없다는 것이 강한 신호다 — 기사 문장은 "다." 나 "." 로 끝난다.
++SUBHEAD_MAX = 120
++
++
++def looks_like_sentence(text: str) -> bool:
++    return bool(SENT_TAIL_RE.search(text.strip()))
++
++
++def clean_paragraphs(
++    paragraphs: list[str], title: str | None = None
++) -> tuple[list[str], list[tuple[str, str]]]:
++    """문단 목록을 정제한다. (남은 문단, [(규칙이름, 지운 것)]) 를 돌려준다.
++
++    지우거나 앞머리를 떼는 것만 한다. 남는 글자는 원문 그대로다.
++    지운 내역을 함께 돌려주는 것은 규칙을 손볼 때 무엇이 사라졌는지 봐야 하기 때문이다.
++    """
++    kept: list[str] = []
++    log: list[tuple[str, str]] = []
++    in_lead = True  # 아직 본문 첫 문장을 못 만났다
++    normalized_title = re.sub(r"\s+", "", title or "")
++
++    for paragraph in paragraphs:
++        text = paragraph.strip()
++        if not text:
++            continue
++
++        hit = None
++        for name, _why, scope, pattern in DROP_RE:
++            if scope == "lead" and not in_lead:
++                continue
++            if pattern.search(text):
++                hit = name
++                break
++        if hit:
++            log.append((hit, text))
++            continue
++
++        if in_lead:
++            # 제목을 본문에 한 번 더 싣는 매체가 있다. 제목은 이미 title 에 있다.
++            if (
++                normalized_title
++                and len(normalized_title) > 10
++                and re.sub(r"\s+", "", text) in normalized_title
++            ):
++                log.append(("title_echo", text))
++                continue
++            # 종결부호 없는 짧은 줄 = 제목이거나 부제다.
++            if not looks_like_sentence(text) and len(text) <= SUBHEAD_MAX:
++                log.append(("subhead", text))
++                continue
++
++        for name, _why, pattern in TRIM_RE:
++            match = pattern.match(text)
++            if match:
++                log.append((name, match.group(0)))
++                text = text[match.end() :].strip()
++        if not text:
++            continue
++
++        if looks_like_sentence(text):
++            in_lead = False  # 여기부터는 본문이다
++        kept.append(text)
++
++    return kept, log
+diff --git a/ai/app/services/news_link/extract.py b/ai/app/services/news_link/extract.py
+new file mode 100644
+index 0000000..db6ff98
+--- /dev/null
++++ b/ai/app/services/news_link/extract.py
+@@ -0,0 +1,151 @@
++"""기사 HTML → (제목, 정제된 본문).
++
++**문단 단위로 모은다.** 기사 영역을 통째로 get_text 하면 바이라인·음성재생 UI
++문구·공유 버튼 텍스트가 앞에 붙어서 첫 문장이 그 쓰레기가 된다.
++
++`article_paragraphs` 와 `extract_body` 를 나눠 둔 것은 **정제 전 문단**을 봐야 하는
++쪽이 있기 때문이다. 정제된 결과만 돌려주면 "무엇이 지워졌는지" 를 보여줄 수가 없고,
++그게 안 보이면 clean.py 의 규칙을 손볼 수 없다.
++
++backend 는 같은 일을 trafilatura 로 한다. 여기서 bs4 를 쓰는 것은 기사 영역
++선택자를 우리가 직접 쥐고 있어야 하기 때문이다 — 텔레그램에 올라오는 링크는 국내
++매체·증권사 블로그·외신이 섞여서, 실패하면 어느 선택자를 고쳐야 하는지 보여야 한다.
++"""
++
++import re
++
++from bs4 import BeautifulSoup
++
++from app.services.news_link.clean import clean_paragraphs
++
++ARTICLE_SELECTORS = [
++    "#dic_area", "#newsct_article",  # 네이버 뉴스
++    "div.se-main-container",  # 네이버 블로그 (스마트에디터)
++    "#articleBodyContents", "div#harmonyContainer",
++    "[itemprop=articleBody]", "div.article-body", "div.article_body",
++    "div.news_end", "#CmAdContent", "div.paragraph",  # YTN
++    "article",
++]
++PARA_SELECTORS = "p, div.se-text-paragraph"
++
++# 문단으로 셀 만큼 긴가. **내용 판단은 여기서 하지 않는다.** 광고·저작권·바이라인
++# 같은 "기사가 아닌 것" 은 clean.py 가 전담한다. 두 군데서 나눠 판단하면 규칙이
++# 갈라져, 어느 쪽을 고쳐야 하는지 모르게 된다.
++MIN_PARA_CHARS = 25
++
++
++def _squash(text: str) -> str:
++    return re.sub(r"[ \t\xa0]+", " ", text).strip()
++
++
++def _keep_para(text: str) -> bool:
++    return len(text) >= MIN_PARA_CHARS
++
++
++def _common_ancestor(nodes: list) -> object | None:
++    """노드들을 모두 품는 가장 가까운 조상. 하나도 없으면 None."""
++    if not nodes:
++        return None
++    chain = [nodes[0], *nodes[0].parents]
++    for node in nodes[1:]:
++        other = {id(parent) for parent in [node, *node.parents]}
++        chain = [parent for parent in chain if id(parent) in other]
++        if not chain:
++            return None
++    return chain[0]
++
++
++def article_paragraphs(html_text: str) -> tuple[str, list[str], int]:
++    """**정제 전** 문단 목록. (제목, 문단들, 최소문단수) 를 돌려준다."""
++    soup = BeautifulSoup(html_text, "html.parser")
++    for tag in soup(
++        ["script", "style", "nav", "header", "footer", "aside",
++         "iframe", "figcaption", "form", "noscript", "button"]
++    ):
++        tag.decompose()
++    for br in soup.find_all("br"):  # <br> 로만 나뉜 본문이 붙어버리지 않게
++        br.replace_with("\n")
++
++    title = ""
++    og_title = soup.select_one('meta[property="og:title"]')
++    if og_title and og_title.get("content"):
++        title = og_title["content"]
++    elif soup.title and soup.title.string:
++        title = soup.title.string
++    title = re.sub(r"\s+", " ", title or "").strip()[:120]
++
++    node = None
++    for selector in ARTICLE_SELECTORS:
++        found = soup.select_one(selector)
++        if found and len(found.get_text(" ", strip=True)) > 150:
++            node = found
++            break
++
++    if node is not None:
++        paras = [
++            _squash(p.get_text(" ", strip=True))
++            for p in node.select(PARA_SELECTORS)
++            if not p.find("p")
++        ]
++        paras = [t for t in paras if _keep_para(t)]
++        if not paras:
++            # 네이버 뉴스(#dic_area)·TechPowerUp 은 본문을 <p> 없이 <br> 로만
++            # 나눈다. 기사 영역이 확실할 때만 쓰는 되돌림이라 잡음이 적다.
++            paras = [
++                t for t in (_squash(x) for x in node.get_text("\n").split("\n")) if _keep_para(t)
++            ]
++        return title, paras, 1
++
++    # 아는 기사 영역이 없다. <p> 를 **부모별로 묶어** 두꺼운 덩어리만 쓴다.
++    # 페이지 전체에서 <p> 를 긁으면 푸터의 회사 소개가 첫 문장이 된다
++    # (counterpointresearch.com 에서 실제로 그랬다).
++    groups: dict[int, dict] = {}
++    for p in soup.select(PARA_SELECTORS):
++        if p.find("p"):
++            continue  # 중첩 문단은 안쪽 것만 센다
++        text = _squash(p.get_text(" ", strip=True))
++        if not _keep_para(text):
++            continue
++        group = groups.setdefault(id(p.parent), {"node": p.parent, "paras": []})
++        group["paras"].append(text)
++    if not groups:
++        return title, [], 1
++
++    def weight(group: dict) -> int:
++        return sum(len(t) for t in group["paras"])
++
++    best = max(groups.values(), key=weight)
++    # 한 기사인데 문단이 형제 컨테이너로 쪼개져 있는 AMP 페이지가 있다. 가장 두꺼운
++    # 덩어리만 쓰면 리드 문단을 건너뛰고 기사 중간부터 자르게 되는데, "본문 앞 3문장"
++    # 이라고 넘긴 것이 실은 중간이면 모델이 잘못 읽는다. 그래서 의미 있는 덩어리들의
++    # 공통 조상을 잡아 문서 순서대로 다시 모은다.
++    significant = [g["node"] for g in groups.values() if weight(g) >= weight(best) * 0.15]
++    ancestor = _common_ancestor(significant)
++    if ancestor is not None and ancestor.name not in ("body", "html", "[document]"):
++        merged = [
++            _squash(p.get_text(" ", strip=True))
++            for p in ancestor.select(PARA_SELECTORS)
++            if not p.find("p")
++        ]
++        merged = [t for t in merged if _keep_para(t)]
++        # 조상이 너무 넓으면(관련기사·추천글까지 들어오면) 되돌린다
++        if merged and sum(len(t) for t in merged) <= weight(best) * 3:
++            return title, merged, 2
++    return title, best["paras"], 2
++
++
++def finish(title: str, paragraphs: list[str], min_paras: int = 1) -> str:
++    """문단을 정제해 본문 문자열로 만든다. 모든 경로가 여기로 나간다.
++
++    min_paras=2 는 되돌림 경로에서만 쓴다. 기사 영역을 못 찾아 페이지 전체에서
++    <p> 를 주운 상황이라, 문단 하나는 본문이 아니라 회사 소개일 확률이 높다.
++    없는 것이 틀린 것보다 낫다 — 모델은 발췌를 기사 서두로 읽는다.
++    """
++    kept, _log = clean_paragraphs(paragraphs, title)
++    return "\n".join(kept) if len(kept) >= min_paras else ""
++
++
++def extract_body(html_text: str) -> tuple[str, str]:
++    """기사 HTML 에서 (제목, 정제된 본문) 을 뽑는다. 못 찾으면 본문은 빈 문자열."""
++    title, paragraphs, min_paras = article_paragraphs(html_text)
++    return title, finish(title, paragraphs, min_paras)
+diff --git a/ai/app/services/news_link/fetch.py b/ai/app/services/news_link/fetch.py
+new file mode 100644
+index 0000000..e6166ee
+--- /dev/null
++++ b/ai/app/services/news_link/fetch.py
+@@ -0,0 +1,217 @@
++"""뉴스 링크를 열어 본문 앞부분을 가져온다.
++
++텔레그램 메시지는 "제목 + 단축 URL" 만 있고 내용이 링크 안에 있는 경우가 많다.
++프로토타입 실측으로 메시지 129건에 링크 176개였고 그중 **123개가 단축 URL**
++(buly.kr 87 / tinyurl 21 / vo.la 15)이었다. 모델은 `buly.kr/xxx` 를 열 수 없고
++도메인조차 못 봐서, 그대로 프롬프트에 실으면 토큰만 먹는다.
++
++여기서 딱 두 가지만 한다.
++
++    (1) 단축 URL 을 따라가 **최종 주소와 도메인**을 알아낸다. 본문을 못 읽는 PDF 라도
++        "buly.kr" 이 "file.hanaw.com" 이 되면 모델이 출처는 알아본다.
++    (2) 본문 앞 몇 문장을 **잘라낸다.** 요약하지 않는다 (clean.py 참고).
++
++**LLM 이 부르는 tool 이 아니다.** 에이전트가 링크를 만날 때마다 tool 을 부르면
++호출마다 컨텍스트가 통째로 다시 올라간다. 프로토타입에서 그렇게 돌렸더니 런당
++tool 호출 8~11회에 2분·$0.72 였다. 수집할 때 코드로 미리 열어두면 LLM 호출이 0 이다.
++
++실패해도 예외를 올리지 않는다. 링크 하나 때문에 수집이 멈추면 사이트 한 곳이 죽은 날
++그날치를 통째로 못 모은다. 실패는 `LinkBody.status` 에 남긴다.
++(backend `services/news/content.py` 와 같은 태도다.)
++
++2026-09-18 프로토타입 실측(링크 56건): 본문 확보 15 / PDF 16 / 본문 못 찾음 16 / 401·403 8.
++절반이 안 열리지만 안 열려도 최종 도메인은 남는다.
++"""
++
++import asyncio
++import logging
++import re
++from datetime import UTC, datetime
++from urllib.parse import urlparse
++
++import httpx
++
++from app.services.news_link.extract import extract_body
++from app.services.news_link.schema import LinkBody
++from app.services.news_link.sentence import first_sentences
++
++logger = logging.getLogger(__name__)
++
++# 브라우저처럼 보이게 한다. 국내 매체 일부는 낯선 UA 를 막는다.
++USER_AGENT = (
++    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
++    "(KHTML, like Gecko) Chrome/122.0 Safari/537.36"
++)
++HEADERS = {"User-Agent": USER_AGENT, "Accept-Language": "ko,en;q=0.8"}
++
++DEFAULT_SENTENCES = 3
++DEFAULT_MAX_CHARS = 400
++# 남의 서버다. 한 번에 많이 두드리지 않는다.
++DEFAULT_CONCURRENCY = 5
++# PDF(50MB)와 달리 기사 HTML 이 3MB 를 넘으면 기사 페이지가 아니다.
++MAX_HTML_BYTES = 3_000_000
++# 링크는 건당 1회 호출이라 짧게 잡는다. 안 열리는 사이트를 오래 기다리면
++# 그만큼 수집 전체가 늦어진다. PDF 를 받는 analyst 쪽(30초)과 값이 다른 이유다.
++DEFAULT_TIMEOUT_SEC = 12.0
++
++HTML_TYPES = ("text/html", "application/xhtml+xml")
++_META_CHARSET_RE = re.compile(rb"""charset\s*=\s*["']?\s*([\w\-]+)""", re.IGNORECASE)
++
++
++def utcnow() -> datetime:
++    return datetime.now(UTC)
++
++
++def is_fetchable(url: str) -> bool:
++    """열어볼 만한 주소인가.
++
++    텔레그램은 본문에 적힌 "PLTR.US", "Pony.ai", "1211.HK" 같은 티커 문자열도
++    자동으로 링크로 만든다. 실제로 열면 엉뚱한 사이트가 나온다
++    (PLTR.US → prayerletters.com). 호스트에 대문자가 있고 경로가 비어 있으면
++    사람이 적어 넣은 주소가 아니라고 본다.
++    """
++    try:
++        parsed = urlparse(url)
++    except ValueError:
++        return False
++    if parsed.scheme not in ("http", "https") or not parsed.netloc:
++        return False
++    host_has_upper = parsed.netloc != parsed.netloc.lower()
++    path_is_bare = parsed.path in ("", "/")
++    looks_like_ticker = host_has_upper and path_is_bare
++    return not looks_like_ticker
++
++
++def decode_html(content: bytes, content_type: str) -> str:
++    """바이트를 글자로. **국내 매체에는 아직 EUC-KR 이 있다.**
++
++    httpx 는 헤더에 charset 이 없으면 utf-8 로 읽는다(requests 의 apparent_encoding
++    같은 추정이 없다). 그대로 두면 EUC-KR 기사가 통째로 깨져서 정제 규칙도 문장
++    분리도 전부 헛돈다. 그래서 헤더 → <meta charset> → utf-8 순으로 찾는다.
++    """
++    encoding = None
++    if "charset=" in content_type.lower():
++        encoding = content_type.lower().split("charset=")[1].split(";")[0].strip(" \"'")
++    if not encoding:
++        found = _META_CHARSET_RE.search(content[:4096])
++        if found:
++            encoding = found.group(1).decode("ascii", "ignore")
++    try:
++        return content.decode(encoding or "utf-8", errors="replace")
++    except LookupError:  # 사이트가 없는 인코딩 이름을 적어두는 경우가 있다
++        return content.decode("utf-8", errors="replace")
++
++
++async def fetch_link(
++    client: httpx.AsyncClient,
++    url: str,
++    *,
++    sentences: int = DEFAULT_SENTENCES,
++    max_chars: int = DEFAULT_MAX_CHARS,
++) -> LinkBody:
++    """링크 하나를 연다. 예외를 밖으로 던지지 않는다."""
++    body = LinkBody(url=url, fetched_at=utcnow())
++    try:
++        # 스트림으로 연다. 응답 헤더만 보고 PDF·거대 페이지를 끝까지 받지 않고 끊는다.
++        # UA 는 요청마다 준다 — 호출 측이 넘긴 client 가 UA 를 안 달고 있어도
++        # 같은 조건으로 열리게 하려는 것이다.
++        async with client.stream("GET", url, headers=HEADERS, follow_redirects=True) as response:
++            body.final_url = str(response.url)
++            body.domain = urlparse(str(response.url)).netloc
++            if response.status_code != 200:
++                body.status = "http_error"
++                body.http_status = response.status_code
++                return body
++
++            # 헤더는 한 번만 읽는다. 원본(charset 포함)은 decode_html 이 쓰고,
++            # 앞부분만 떼어낸 쪽은 종류 판정에 쓴다.
++            raw_content_type = response.headers.get("content-type") or ""
++            content_type = raw_content_type.split(";")[0].strip()
++            if content_type.lower() not in HTML_TYPES:
++                # 증권사 리서치는 대부분 PDF 로 떨어진다. 본문은 못 읽지만 최종
++                # 도메인이 남는 것만으로도 단축 URL 보다 낫다. PDF 본문이 필요해지면
++                # services/analyst/pdf.py 가 이미 바이트 → 텍스트를 한다.
++                body.status = "pdf" if "pdf" in content_type.lower() else "not_html"
++                body.content_type = content_type or None
++                return body
++
++            length = response.headers.get("content-length")
++            if length and length.isdigit() and int(length) > MAX_HTML_BYTES:
++                body.status = "too_large"
++                return body
++
++            content = await response.aread()
++            if len(content) > MAX_HTML_BYTES:  # content-length 를 안 주는 서버가 있다
++                body.status = "too_large"
++                return body
++
++        html_text = decode_html(content, raw_content_type)
++        # bs4 파싱은 CPU 를 오래 쥔다. 다른 링크의 응답을 기다리게 하지 않는다.
++        title, article = await asyncio.to_thread(extract_body, html_text)
++        body.title = title or None
++        if not article:
++            body.status = "no_body"
++            return body
++        excerpt = first_sentences(article, sentences, max_chars)
++        body.excerpt = excerpt or None
++        body.chars = len(excerpt)
++        body.status = "ok" if excerpt else "no_body"
++    except Exception as exc:  # noqa: BLE001 — 네트워크·인코딩·파싱 전부. 링크 하나에 수집이 멈추면 안 된다
++        body.status = "error"
++        body.error = f"{type(exc).__name__}: {str(exc)[:70]}"
++        # 본문을 못 읽어도 **어디로 가는 주소인지는 건질 수 있다.** 리다이렉트는
++        # 성공하고 목적지에서 응답이 끊기는 경우가 있다(globenewswire 가 그랬다).
++        if body.final_url is None:
++            request = getattr(exc, "request", None)
++            failed_url = str(getattr(request, "url", "") or "")
++            if failed_url and failed_url != url:
++                body.final_url = failed_url
++                body.domain = urlparse(failed_url).netloc
++    return body
++
++
++async def fetch_link_bodies(
++    urls: list[str],
++    *,
++    sentences: int = DEFAULT_SENTENCES,
++    max_chars: int = DEFAULT_MAX_CHARS,
++    concurrency: int = DEFAULT_CONCURRENCY,
++    timeout: float = DEFAULT_TIMEOUT_SEC,
++    client: httpx.AsyncClient | None = None,
++) -> list[LinkBody]:
++    """링크 여러 개를 연다. 결과는 준 순서 그대로다.
++
++    열어볼 값어치가 없는 주소(티커 문자열이 링크로 잡힌 것)는 빼고 돌려준다.
++    중복 URL 은 한 번만 열고 같은 결과를 나눠 쓴다 — 한 채널에서 같은 기사를
++    여러 번 올리는 일이 흔하다.
++
++    `client` 를 받는 것은 호출 측이 커넥션을 재사용하게 하려는 것이다.
++    수집기는 수백 개 링크를 연달아 여는데 매번 AsyncClient 를 새로 열면
++    TCP·TLS 핸드셰이크를 그만큼 반복한다.
++
++    **`client` 를 주면 `timeout` 은 쓰이지 않는다.** 타임아웃은 AsyncClient 에
++    붙는 값이라, 이미 만들어진 client 를 받으면 그쪽 설정이 이긴다. 수집기에서
++    타임아웃을 바꾸려면 client 를 만들 때 넣어야 한다.
++    """
++    targets = [url for url in urls if is_fetchable(url)]
++    dropped = len(urls) - len(targets)
++    if dropped:
++        logger.debug("링크 %d건은 주소가 아니라고 보고 건너뜀", dropped)
++    unique = list(dict.fromkeys(targets))
++    if not unique:
++        return []
++
++    semaphore = asyncio.Semaphore(concurrency)
++
++    async def one(session: httpx.AsyncClient, url: str) -> LinkBody:
++        async with semaphore:
++            return await fetch_link(session, url, sentences=sentences, max_chars=max_chars)
++
++    if client is not None:
++        results = await asyncio.gather(*(one(client, url) for url in unique))
++    else:
++        async with httpx.AsyncClient(timeout=timeout, headers=HEADERS) as session:
++            results = await asyncio.gather(*(one(session, url) for url in unique))
++
++    by_url = dict(zip(unique, results, strict=True))
++    return [by_url[url] for url in targets]
+diff --git a/ai/app/services/news_link/schema.py b/ai/app/services/news_link/schema.py
+new file mode 100644
+index 0000000..90a647e
+--- /dev/null
++++ b/ai/app/services/news_link/schema.py
+@@ -0,0 +1,45 @@
++"""링크 한 건을 연 결과. 출처(지금은 텔레그램, 나중에 네이버)와 무관한 공통 모델.
++
++Pydantic 을 쓰는 이유는 여기가 **외부 경계**라서다. 남의 사이트가 주는 것을 담는
++그릇이고, 응답은 예고 없이 모양이 바뀐다.
++(`services/analyst/schema.py`, `backend/app/services/news/schema.py` 와 같은 자리다.)
++
++**url 은 HttpUrl 이 아니라 str 이다.** 텔레그램 본문에 적힌 주소를 그대로 키로 써야
++같은 링크를 두 번 열지 않는데, HttpUrl 은 끝의 `/` 를 붙이는 등 정규화를 해서
++원문에 적힌 문자열과 달라진다.
++"""
++
++from datetime import datetime
++from typing import Literal
++
++from pydantic import BaseModel
++
++# 링크를 연 결과.
++#   ok          본문을 뽑았다
++#   no_body     열긴 열었는데 기사 본문을 못 찾았다 (JS 로 그리는 페이지·공시 뷰어)
++#   pdf         PDF 다. 본문은 못 읽고 최종 도메인만 남는다
++#   not_html    HTML 도 PDF 도 아니다 (이미지·동영상)
++#   too_large   본문 상한을 넘는다
++#   http_error  200 이 아니다. Reuters·Bloomberg 는 봇을 막아 401/403 을 준다
++#   error       네트워크·인코딩·파싱 실패
++LinkStatus = Literal["ok", "no_body", "pdf", "not_html", "too_large", "http_error", "error"]
++
++
++class LinkBody(BaseModel):
++    """링크 하나의 수집 결과. 실패해도 버리지 않는다 — 최종 도메인만 남아도 값이 있다."""
++
++    url: str  # 메시지에 적혀 있던 주소. 대부분 단축 URL 이다
++    final_url: str | None = None  # 리다이렉트를 따라간 최종 주소
++    domain: str | None = None
++    status: LinkStatus = "error"
++    title: str | None = None
++    # 본문의 **연속된 앞부분**. 요약이 아니다. 여기서 한 글자라도 바꿔 쓰면
++    # 모델이 정직하게 인용해도 "원문에 없는 인용" 으로 잡히게 된다.
++    excerpt: str | None = None
++    chars: int = 0
++    http_status: int | None = None  # status 가 http_error 일 때만
++    content_type: str | None = None  # status 가 pdf·not_html 일 때 무엇이었는지
++    error: str | None = None  # status 가 error 일 때 예외 이름과 앞부분
++    # 이 링크를 연 시각. tz-aware UTC 다. **기사는 발행 뒤에도 고쳐지므로**,
++    # 이 값이 있어야 나중에 "대상일 컷오프보다 늦게 연 것" 을 걸러낼 수 있다.
++    fetched_at: datetime
+diff --git a/ai/app/services/news_link/sentence.py b/ai/app/services/news_link/sentence.py
+new file mode 100644
+index 0000000..c70e0dc
+--- /dev/null
++++ b/ai/app/services/news_link/sentence.py
+@@ -0,0 +1,57 @@
++"""문장을 세는 규칙. **여기 한 곳에만 둔다.**
++
++프로토타입에서 점검 도구가 이 규칙을 따로 갖고 있었더니, "Sept. 17" 과
++"T. Rowe Price" 에서 끊어 3문장짜리 발췌를 6문장으로 세고 있지도 않은 문제를
++보고했다. 자르는 쪽과 세는 쪽이 같은 함수를 봐야 한다.
++"""
++
++import re
++
++# 문장 끝. 소수점("$1.56")과 약어("U.S." "Sept.")에서 끊기지 않게 막는다.
++SENT_END_RE = re.compile(r"(?<!\d)[.!?][\"'”’)\]]*(?=\s|$)")
++ABBREV_TAIL_RE = re.compile(
++    r"(?:\b[A-Z]|\b(?:Mr|Mrs|Ms|Dr|Prof|Inc|Corp|Co|Ltd|Jr|Sr|St|vs|No"
++    r"|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec))\.$"
++)
++
++
++def sentence_ends(body: str) -> list[int]:
++    """문장이 끝나는 지점들."""
++    ends = []
++    for match in SENT_END_RE.finditer(body):
++        if ABBREV_TAIL_RE.search(body[: match.end()]):
++            continue  # "U.S." "Sept." 는 문장 끝이 아니다
++        ends.append(match.end())
++    # 문단 경계도 문장 끝으로 친다. 마침표 없이 끝나는 소제목("1. 유가")에서
++    # 안 끊으면 세 문장이 본문 절반을 삼킨다.
++    ends += [match.start() for match in re.finditer(r"\n", body)]
++    return sorted({end for end in ends if end > 0})
++
++
++def split_sentences(body: str) -> list[str]:
++    """본문을 문장 단위로 나눈다. sentence_ends 와 같은 규칙을 쓴다."""
++    out: list[str] = []
++    prev = 0
++    for end in [*sentence_ends(body), len(body)]:
++        chunk = body[prev:end].strip()
++        if chunk:
++            out.append(chunk)
++        prev = end
++    return out
++
++
++def first_sentences(body: str, count: int, max_chars: int) -> str:
++    """본문 앞 count 문장을 잘라낸다.
++
++    반환값은 **언제나 body 의 앞부분 그대로**다. 요약도 재구성도 하지 않는다.
++    나중에 붙일 인용 대조가 그 성질에 기대게 된다.
++
++    앞부분만 싣는 것은 payload 때문이다. 본문 전량을 실으면 프로토타입 실측으로
++    종목당 5,000 토큰이 35,000 토큰이 됐다. 3문장이면 15건에 약 1,900 토큰이다.
++    """
++    ends = sentence_ends(body)
++    cut = ends[count - 1] if len(ends) >= count else len(body)
++    if cut > max_chars:  # 문장이 길면 상한 안쪽 경계로 되돌린다
++        fits = [end for end in ends if end <= max_chars]
++        cut = fits[-1] if fits else max_chars
++    return body[:cut].strip()
+diff --git a/ai/pyproject.toml b/ai/pyproject.toml
+index a11ae8f..7c763fe 100644
+--- a/ai/pyproject.toml
++++ b/ai/pyproject.toml
+@@ -5,6 +5,11 @@ description = "BASIS 리포트 수집 파이프라인"
+ requires-python = ">=3.12"
+ dependencies = [
+     "asyncpg>=0.31.0",
++    # 뉴스 링크 본문 추출. 기사 영역 선택자를 직접 쥐려고 bs4 를 쓴다
++    # (backend 는 같은 일을 trafilatura 로 한다 — services/news_link/extract.py 참고).
++    "beautifulsoup4>=4.12.0",
++    "httpx>=0.28.1",
++    "pydantic>=2.13.5",
+     "pydantic-settings>=2.15.0",
+     "sqlalchemy[asyncio]>=2.0.52",
+ ]
+diff --git a/ai/tests/test_news_link_clean.py b/ai/tests/test_news_link_clean.py
+new file mode 100644
+index 0000000..552354c
+--- /dev/null
++++ b/ai/tests/test_news_link_clean.py
+@@ -0,0 +1,67 @@
++"""정제 규칙이 지켜야 하는 성질을 잡는다. 네트워크도 DB 도 쓰지 않는다.
++
++가장 중요한 건 **남는 글자가 원문 그대로**라는 것이다. 나중에 모델의 인용을 원문과
++문자열로 대조하려면 그 성질이 살아 있어야 한다. 규칙을 고치다 이게 깨지면
++환각 검증이 조용히 죽으므로, 테스트가 먼저 깨져야 한다.
++"""
++
++from app.services.news_link.clean import clean_paragraphs
++
++
++def test_남는_문장은_원문_그대로다() -> None:
++    paras = [
++        "(서울=연합뉴스) 이도흔 기자 = 삼성전자가 차세대 메모리를 공개했다.",
++        "회사는 내년 양산을 목표로 한다고 밝혔다.",
++    ]
++    kept, _log = clean_paragraphs(paras)
++    joined = "\n".join(kept)
++    assert "삼성전자가 차세대 메모리를 공개했다." in paras[0]
++    assert joined.startswith("삼성전자가 차세대 메모리를 공개했다.")
++    for sentence in kept:
++        assert any(sentence in original for original in paras), "문장을 다시 쓰면 안 된다"
++
++
++def test_바이라인은_앞머리만_뗀다() -> None:
++    """문단을 통째로 버리면 리드 문장이 같이 날아간다. 연합뉴스가 그 형태다."""
++    kept, log = clean_paragraphs(["(서울=연합뉴스) 이도흔 기자 = 본문이 여기서 시작된다."])
++    assert kept == ["본문이 여기서 시작된다."]
++    assert log[0][0] == "byline_paren"
++
++
++def test_저작권_문단은_버린다() -> None:
++    kept, _log = clean_paragraphs(
++        ["기사 본문이 충분히 길게 이어지는 문장이다.", "ⓒ 무단 전재 및 재배포 금지"]
++    )
++    assert kept == ["기사 본문이 충분히 길게 이어지는 문장이다."]
++
++
++def test_머리_규칙은_본문_시작_전까지만_적용된다() -> None:
++    """기사 중간의 날짜 줄까지 지우면 떨어져 있던 문장이 붙어 원문에 없던 흐름이 생긴다."""
++    paras = [
++        "2026-09-18 15:30",  # 머리 — 지운다
++        "본문 첫 문장이 여기서 시작된다.",
++        "2026년 3분기 실적은 시장 기대를 웃돌았다.",  # 본문 — 날짜로 시작해도 남긴다
++    ]
++    kept, _log = clean_paragraphs(paras)
++    assert kept == paras[1:]
++
++
++def test_종결부호_없는_짧은_머리줄은_부제로_본다() -> None:
++    paras = ["HBM 공급 확대", "회사는 공급을 늘리겠다고 밝혔다."]
++    kept, log = clean_paragraphs(paras)
++    assert kept == ["회사는 공급을 늘리겠다고 밝혔다."]
++    assert ("subhead", "HBM 공급 확대") in log
++
++
++def test_중국어_문단은_부제로_오해하지_않는다() -> None:
++    """마침표가 '。' 라서 종결부호 판정에서 빠지면 멀쩡한 본문이 부제로 버려진다."""
++    paras = ["台積電表示本季產能已經全部售罄。", "다음 문장이 이어진다."]
++    kept, _log = clean_paragraphs(paras)
++    assert paras[0] in kept
++
++
++def test_제목을_본문에_한번_더_실은_것은_버린다() -> None:
++    title = "칩 위에 메모리 통째로 얹었다 삼성전자 zHBM 승부수"
++    kept, log = clean_paragraphs([title, "삼성전자가 기술 비전을 공개했다."], title=title)
++    assert kept == ["삼성전자가 기술 비전을 공개했다."]
++    assert log[0][0] == "title_echo"
+diff --git a/ai/tests/test_news_link_fetch.py b/ai/tests/test_news_link_fetch.py
+new file mode 100644
+index 0000000..04b862f
+--- /dev/null
++++ b/ai/tests/test_news_link_fetch.py
+@@ -0,0 +1,162 @@
++"""링크 열기. httpx MockTransport 로 남의 서버 없이 돈다.
++
++여기서 지키려는 것은 **실패해도 건질 것은 건진다**는 성질이다. 링크 하나가
++죽었다고 예외를 올리면 그날치 수집이 통째로 멈춘다.
++"""
++
++import httpx
++import pytest
++
++from app.services.news_link.fetch import fetch_link, fetch_link_bodies, is_fetchable
++
++ARTICLE_HTML = """
++<html><head><meta property="og:title" content="삼성전자 zHBM 공개"></head>
++<body><article>
++<p>(서울=연합뉴스) 이도흔 기자 = 삼성전자가 차세대 메모리 기술을 공개했다고 밝혔다.</p>
++<p>회사는 내년 하반기 양산을 목표로 하고 있다고 이날 설명했다.</p>
++<p>업계는 공급 확대가 가격에 영향을 줄 것으로 보고 있다고 전했다.</p>
++<p>ⓒ 무단 전재 및 재배포 금지</p>
++</article></body></html>
++"""
++
++
++def _client(handler) -> httpx.AsyncClient:
++    return httpx.AsyncClient(transport=httpx.MockTransport(handler))
++
++
++async def test_기사를_열면_발췌가_본문의_앞부분이다() -> None:
++    async def handler(request: httpx.Request) -> httpx.Response:
++        return httpx.Response(200, html=ARTICLE_HTML)
++
++    async with _client(handler) as client:
++        body = await fetch_link(client, "https://example.com/news/1")
++
++    assert body.status == "ok"
++    assert body.title == "삼성전자 zHBM 공개"
++    assert body.excerpt is not None
++    assert body.excerpt.startswith("삼성전자가 차세대 메모리 기술을 공개했다고 밝혔다.")
++    assert "무단 전재" not in body.excerpt
++    assert body.chars == len(body.excerpt)
++    assert body.fetched_at.tzinfo is not None, "naive datetime 을 쓰지 않는다"
++
++
++async def test_단축_URL_은_최종_주소로_풀린다() -> None:
++    """본문을 못 읽어도 이게 이 기능의 1번 값어치다. 모델이 출처를 알아본다."""
++
++    async def handler(request: httpx.Request) -> httpx.Response:
++        if request.url.host == "buly.kr":
++            return httpx.Response(302, headers={"location": "https://www.ytn.co.kr/_ln/0104"})
++        return httpx.Response(200, html=ARTICLE_HTML)
++
++    async with _client(handler) as client:
++        body = await fetch_link(client, "https://buly.kr/DPWhsGM")
++
++    assert body.final_url == "https://www.ytn.co.kr/_ln/0104"
++    assert body.domain == "www.ytn.co.kr"
++
++
++async def test_PDF_는_본문_없이_도메인만_남긴다() -> None:
++    async def handler(request: httpx.Request) -> httpx.Response:
++        return httpx.Response(200, content=b"%PDF-1.4", headers={"content-type": "application/pdf"})
++
++    async with _client(handler) as client:
++        body = await fetch_link(client, "https://file.hanaw.com/report.pdf")
++
++    assert body.status == "pdf"
++    assert body.domain == "file.hanaw.com"
++    assert body.excerpt is None
++
++
++async def test_봇을_막는_사이트는_http_error_로_남는다() -> None:
++    async def handler(request: httpx.Request) -> httpx.Response:
++        return httpx.Response(401)
++
++    async with _client(handler) as client:
++        body = await fetch_link(client, "https://www.reuters.com/x")
++
++    assert body.status == "http_error"
++    assert body.http_status == 401
++
++
++async def test_네트워크가_끊겨도_예외를_올리지_않는다() -> None:
++    async def handler(request: httpx.Request) -> httpx.Response:
++        raise httpx.ConnectError("boom", request=request)
++
++    async with _client(handler) as client:
++        body = await fetch_link(client, "https://example.com/dead")
++
++    assert body.status == "error"
++    assert body.error is not None and body.error.startswith("ConnectError")
++
++
++async def test_EUC_KR_기사도_깨지지_않는다() -> None:
++    """httpx 는 charset 이 없으면 utf-8 로 읽는다. 국내 매체에는 아직 EUC-KR 이 있다."""
++    html = ARTICLE_HTML.replace("<head>", '<head><meta charset="euc-kr">')
++
++    async def handler(request: httpx.Request) -> httpx.Response:
++        return httpx.Response(
++            200, content=html.encode("euc-kr"), headers={"content-type": "text/html"}
++        )
++
++    async with _client(handler) as client:
++        body = await fetch_link(client, "https://example.co.kr/news/1")
++
++    assert body.status == "ok"
++    assert body.excerpt is not None and "삼성전자" in body.excerpt
++
++
++async def test_본문을_못_찾으면_no_body_다() -> None:
++    async def handler(request: httpx.Request) -> httpx.Response:
++        return httpx.Response(200, html="<html><body><div id='app'></div></body></html>")
++
++    async with _client(handler) as client:
++        body = await fetch_link(client, "https://biz.sbs.co.kr/article/1")
++
++    assert body.status == "no_body"
++
++
++@pytest.mark.parametrize(
++    ("url", "expected"),
++    [
++        ("https://buly.kr/DPWhsGM", True),
++        ("https://PLTR.US", False),  # 텔레그램이 티커를 링크로 만든 것
++        ("https://Pony.ai/", False),
++        ("ftp://example.com/x", False),
++    ],
++)
++def test_티커_문자열은_링크로_보지_않는다(url: str, expected: bool) -> None:
++    assert is_fetchable(url) is expected
++
++
++async def test_같은_링크는_한_번만_연다() -> None:
++    """한 채널이 같은 기사를 여러 번 올린다. 중복이어도 결과는 준 순서대로 다시 깔린다."""
++    calls: list[str] = []
++
++    async def handler(request: httpx.Request) -> httpx.Response:
++        calls.append(str(request.url))
++        return httpx.Response(200, html=ARTICLE_HTML)
++
++    urls = ["https://example.com/a", "https://example.com/a"]
++    async with _client(handler) as client:
++        bodies = await fetch_link_bodies(urls, client=client)
++
++    assert len(calls) == 1
++    assert [b.url for b in bodies] == urls
++
++
++async def test_결과는_입력과_길이가_다를_수_있다() -> None:
++    """**호출 측이 인덱스로 짝지으면 안 된다는 뜻이다.** url 로 맞춰야 한다.
++
++    열어볼 값어치가 없는 주소(텔레그램이 티커를 링크로 만든 것)는 아예 빠져서
++    돌아온다. 수집기를 붙일 때 `zip(urls, bodies)` 를 쓰면 그 뒤로 전부 한 칸씩
++    밀린 채 저장된다 — 터지지 않고 조용히 틀린다.
++    """
++
++    async def handler(request: httpx.Request) -> httpx.Response:
++        return httpx.Response(200, html=ARTICLE_HTML)
++
++    urls = ["https://example.com/a", "https://PLTR.US", "https://example.com/b"]
++    async with _client(handler) as client:
++        bodies = await fetch_link_bodies(urls, client=client)
++
++    assert [b.url for b in bodies] == ["https://example.com/a", "https://example.com/b"]
+diff --git a/ai/tests/test_news_link_sentence.py b/ai/tests/test_news_link_sentence.py
+new file mode 100644
+index 0000000..e00ecb4
+--- /dev/null
++++ b/ai/tests/test_news_link_sentence.py
+@@ -0,0 +1,62 @@
++"""문장 세는 규칙. 자르는 쪽과 세는 쪽이 어긋나면 있지도 않은 문제가 보고된다."""
++
++from app.services.news_link.sentence import first_sentences, sentence_ends, split_sentences
++
++
++def test_소수점에서_끊지_않는다() -> None:
++    body = "주가는 $1.56 에 마감했다. 거래량은 평소의 두 배였다."
++    assert len(split_sentences(body)) == 2
++
++
++def test_약어에서_끊지_않는다() -> None:
++    """U.S. · Sept. 에서 끊으면 3문장 발췌가 6문장으로 세어진다."""
++    body = "The U.S. market closed higher on Sept. 17 amid chip demand. Traders were upbeat."
++    assert len(split_sentences(body)) == 2
++
++
++def test_숫자로_끝나는_문장은_안_끊긴다_알려진_한계다() -> None:
++    """소수점($1.56)에서 안 끊으려고 숫자 뒤 마침표를 전부 제외한 대가다.
++
++    발췌가 의도보다 길어질 뿐 글자를 바꾸지는 않으므로 상한이 받아낸다.
++    고치려면 '숫자.공백+대문자/한글' 을 따로 봐야 하는데, 오탐 쪽이 더 비싸서 두었다.
++    """
++    body = "매출은 전년 대비 늘어 100. 영업이익도 개선됐다."
++    assert len(split_sentences(body)) == 1
++
++
++def test_문단_경계도_문장_끝으로_친다() -> None:
++    """마침표 없이 끝나는 소제목에서 안 끊으면 세 문장이 본문 절반을 삼킨다."""
++    body = "1. 유가\n유가가 올랐다. 정유주가 강세였다."
++    assert split_sentences(body)[0] == "1. 유가"
++
++
++def test_발췌는_언제나_본문의_앞부분_그대로다() -> None:
++    body = "첫 문장이다. 둘째 문장이다. 셋째 문장이다. 넷째 문장이다."
++    excerpt = first_sentences(body, 3, 400)
++    assert body.startswith(excerpt)
++    assert excerpt.endswith("셋째 문장이다.")
++
++
++def test_상한을_넘으면_문장_경계로_되돌린다() -> None:
++    """상한에서 그냥 자르면 발췌가 문장 중간에서 끝나 모델이 잘못 읽는다."""
++    body = "짧은 문장이다. " + "아주 " * 100 + "긴 문장이다."
++    excerpt = first_sentences(body, 3, 40)
++    assert excerpt == "짧은 문장이다."
++
++
++def test_문장이_하나도_안_끝나면_전체를_준다() -> None:
++    body = "마침표가 없는 한 줄짜리 본문"
++    assert first_sentences(body, 3, 400) == body
++    assert sentence_ends(body) == []
++
++
++def test_문장_경계가_없고_상한도_넘으면_상한에서_자른다() -> None:
++    """유일하게 발췌가 문장 중간에서 끝나는 경로다. 그래도 **앞부분 그대로**는 지킨다.
++
++    되돌릴 문장 경계가 하나도 없으니 상한에서 자르는 수밖에 없다. 말은 끊기지만
++    글자를 바꾸지는 않으므로 인용 대조는 살아 있다. 그쪽이 더 중요하다.
++    """
++    body = "마침표도 줄바꿈도 없이 " * 60
++    excerpt = first_sentences(body, 3, 400)
++    assert len(excerpt) <= 400
++    assert body.startswith(excerpt)
+diff --git a/ai/uv.lock b/ai/uv.lock
+index 5adf126..79c79f4 100644
+--- a/ai/uv.lock
++++ b/ai/uv.lock
+@@ -11,6 +11,19 @@ wheels = [
+     { url = "https://files.pythonhosted.org/packages/99/91/8acff4f5e50511b911bbccb72b8628a49c68ce14148cd9f6431094859a90/annotated_types-0.8.0-py3-none-any.whl", hash = "sha256:f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0", size = 13427, upload-time = "2026-07-23T20:16:12.938Z" },
+ ]
+ 
++[[package]]
++name = "anyio"
++version = "4.15.1"
++source = { registry = "https://pypi.org/simple" }
++dependencies = [
++    { name = "idna" },
++    { name = "typing-extensions", marker = "python_full_version < '3.15'" },
++]
++sdist = { url = "https://files.pythonhosted.org/packages/a9/d2/f4d173e22df740bc37b1db102b386ba719b66e95b0f0d751f556b387e6d2/anyio-4.15.1.tar.gz", hash = "sha256:9f28306018cbd6d329e64a36d58256edff76dd996fe423bc957326e578b82a94", size = 276966, upload-time = "2026-09-05T10:42:39.44Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl", hash = "sha256:6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101", size = 132079, upload-time = "2026-09-05T10:42:37.923Z" },
++]
++
+ [[package]]
+ name = "asyncpg"
+ version = "0.31.0"
+@@ -57,6 +70,9 @@ version = "0.1.0"
+ source = { virtual = "." }
+ dependencies = [
+     { name = "asyncpg" },
++    { name = "beautifulsoup4" },
++    { name = "httpx" },
++    { name = "pydantic" },
+     { name = "pydantic-settings" },
+     { name = "sqlalchemy", extra = ["asyncio"] },
+ ]
+@@ -71,6 +87,9 @@ dev = [
+ [package.metadata]
+ requires-dist = [
+     { name = "asyncpg", specifier = ">=0.31.0" },
++    { name = "beautifulsoup4", specifier = ">=4.12.0" },
++    { name = "httpx", specifier = ">=0.28.1" },
++    { name = "pydantic", specifier = ">=2.13.5" },
+     { name = "pydantic-settings", specifier = ">=2.15.0" },
+     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.52" },
+ ]
+@@ -82,6 +101,28 @@ dev = [
+     { name = "ruff", specifier = ">=0.16.6" },
+ ]
+ 
++[[package]]
++name = "beautifulsoup4"
++version = "4.15.0"
++source = { registry = "https://pypi.org/simple" }
++dependencies = [
++    { name = "soupsieve" },
++    { name = "typing-extensions" },
++]
++sdist = { url = "https://files.pythonhosted.org/packages/43/65/318323f98dbee45d42dff61d8f047181bc6f2268a9068cfad035a46be5af/beautifulsoup4-4.15.0.tar.gz", hash = "sha256:288e3ca7d54b06f2ac191970bc275c1939cb46d450b255bf6718b04aa37ab4f7", size = 632571, upload-time = "2026-06-07T16:44:20.453Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/88/c6/92fcd42f1ba33e1184263f25bfabf3d27c383410470f169e4b8163bf9c17/beautifulsoup4-4.15.0-py3-none-any.whl", hash = "sha256:d6f88de62e1d4e38ecb1077eb9724cd0eff29d2a08ca16a401e9b9e93f117cf9", size = 109924, upload-time = "2026-06-07T16:44:21.566Z" },
++]
++
++[[package]]
++name = "certifi"
++version = "2026.7.22"
++source = { registry = "https://pypi.org/simple" }
++sdist = { url = "https://files.pythonhosted.org/packages/a3/c2/24167ea9858356b47a87a50d39908bfdb72ceeefe0041586e704e5376b3a/certifi-2026.7.22.tar.gz", hash = "sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55", size = 138112, upload-time = "2026-07-22T03:35:12.644Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl", hash = "sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775", size = 136983, upload-time = "2026-07-22T03:35:11.276Z" },
++]
++
+ [[package]]
+ name = "colorama"
+ version = "0.4.6"
+@@ -158,6 +199,52 @@ wheels = [
+     { url = "https://files.pythonhosted.org/packages/30/cf/697c051fd534e223461fb8b523890e21a24eeca229cd50624cff6f02fabd/greenlet-3.5.6-cp315-cp315t-win_arm64.whl", hash = "sha256:f9fe868463ec7e1363733af77e38a5fda3e9b63940337048c945d69e0c80ff24", size = 315070, upload-time = "2026-09-14T14:22:21.476Z" },
+ ]
+ 
++[[package]]
++name = "h11"
++version = "0.16.0"
++source = { registry = "https://pypi.org/simple" }
++sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6fb3c75474d40b3052059d95df7e73351460c8588d963/h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1", size = 101250, upload-time = "2025-04-24T03:35:25.427Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
++]
++
++[[package]]
++name = "httpcore"
++version = "1.0.9"
++source = { registry = "https://pypi.org/simple" }
++dependencies = [
++    { name = "certifi" },
++    { name = "h11" },
++]
++sdist = { url = "https://files.pythonhosted.org/packages/06/94/82699a10bca87a5556c9c59b5963f2d039dbd239f25bc2a63907a05a14cb/httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8", size = 85484, upload-time = "2025-04-24T22:06:22.219Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55", size = 78784, upload-time = "2025-04-24T22:06:20.566Z" },
++]
++
++[[package]]
++name = "httpx"
++version = "0.28.1"
++source = { registry = "https://pypi.org/simple" }
++dependencies = [
++    { name = "anyio" },
++    { name = "certifi" },
++    { name = "httpcore" },
++    { name = "idna" },
++]
++sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
++]
++
++[[package]]
++name = "idna"
++version = "3.20"
++source = { registry = "https://pypi.org/simple" }
++sdist = { url = "https://files.pythonhosted.org/packages/f5/08/8eea9d4b8302028f3abb2c0813953f7aec26d33b7a8960ed760e65ff29fa/idna-3.20.tar.gz", hash = "sha256:a7db850025b95ded1eae8a46181a1a6c56c92c96f0e2b005d9ff8dc0210cab44", size = 216463, upload-time = "2026-09-17T14:11:04.752Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl", hash = "sha256:ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c", size = 69583, upload-time = "2026-09-17T14:11:03.168Z" },
++]
++
+ [[package]]
+ name = "iniconfig"
+ version = "2.3.0"
+@@ -361,6 +448,15 @@ wheels = [
+     { url = "https://files.pythonhosted.org/packages/8b/4b/51327018d056f0dad2c2238f26d1fb0f53707a9d91b75dea6d1b3039f136/ruff-0.16.7-py3-none-win_arm64.whl", hash = "sha256:aab7f39e2c9df6c596216070f98eef1207b94f8516cca20c808826974971855b", size = 10412401, upload-time = "2026-09-10T18:04:04.098Z" },
+ ]
+ 
++[[package]]
++name = "soupsieve"
++version = "2.9.2"
++source = { registry = "https://pypi.org/simple" }
++sdist = { url = "https://files.pythonhosted.org/packages/69/99/a6ca3beb3ccacb41fb3321d8a60e5566f9e6467601ef8eba6a17e1b89778/soupsieve-2.9.2.tar.gz", hash = "sha256:4a55d8cf158a9c2e587fa4922f1bbb91d68ac829e2d6f25403a85747c71daf74", size = 122445, upload-time = "2026-08-07T00:57:24.801Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/eb/dc/ad025c1ee131eba60c69f4dd5779b18fcf1e6b21a343e2162a84d5d133c7/soupsieve-2.9.2-py3-none-any.whl", hash = "sha256:8089a26fd974ca7a1f30276d3d8492ab266ab15af581642dfe8aa162e0c1c823", size = 37370, upload-time = "2026-08-07T00:57:23.524Z" },
++]
++
+ [[package]]
+ name = "sqlalchemy"
+ version = "2.0.53"
+
+From bec024db94cc6ae0bf17e19ccd7766d092d1274f Mon Sep 17 00:00:00 2001
+From: swimny <rlatnud052985@gmail.com>
+Date: Tue, 22 Sep 2026 19:55:53 +0900
+Subject: [PATCH 2/3] =?UTF-8?q?test(ai):=20=EC=8B=A4=EC=A0=9C=20=EB=89=B4?=
+ =?UTF-8?q?=EC=8A=A4=20=EB=A7=81=ED=81=AC=EB=A1=9C=20=EB=8F=84=EB=8A=94=20?=
+ =?UTF-8?q?=ED=85=8C=EC=8A=A4=ED=8A=B8=20=EC=B6=94=EA=B0=80?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ ai/pyproject.toml                   |   5 +
+ ai/tests/test_news_link_clean.py    |  14 +--
+ ai/tests/test_news_link_fetch.py    |  20 ++--
+ ai/tests/test_news_link_live.py     | 142 ++++++++++++++++++++++++++++
+ ai/tests/test_news_link_sentence.py |  16 ++--
+ 5 files changed, 172 insertions(+), 25 deletions(-)
+ create mode 100644 ai/tests/test_news_link_live.py
+
+diff --git a/ai/pyproject.toml b/ai/pyproject.toml
+index 7c763fe..d0e215e 100644
+--- a/ai/pyproject.toml
++++ b/ai/pyproject.toml
+@@ -27,6 +27,11 @@ package = false
+ [tool.pytest.ini_options]
+ asyncio_mode = "auto"
+ testpaths = ["tests"]
++# network 는 실제 사이트를 연다. 기본 실행에서 빼는 이유는 남의 서버 사정에 따라
++# 결과가 흔들리기 때문이다. CI 가 빨갛다고 우리 코드가 틀린 게 아닌 테스트는
++# 기본 실행에 두면 안 된다. 돌리려면 `uv run pytest -m network -s`.
++markers = ["network: 실제 사이트를 연다 (기본 실행에서 제외)"]
++addopts = "-m 'not network'"
+ 
+ [tool.ruff]
+ target-version = "py312"
+diff --git a/ai/tests/test_news_link_clean.py b/ai/tests/test_news_link_clean.py
+index 552354c..a78daff 100644
+--- a/ai/tests/test_news_link_clean.py
++++ b/ai/tests/test_news_link_clean.py
+@@ -8,7 +8,7 @@
+ from app.services.news_link.clean import clean_paragraphs
+ 
+ 
+-def test_남는_문장은_원문_그대로다() -> None:
++def test_kept_sentences_are_verbatim_from_the_source() -> None:
+     paras = [
+         "(서울=연합뉴스) 이도흔 기자 = 삼성전자가 차세대 메모리를 공개했다.",
+         "회사는 내년 양산을 목표로 한다고 밝혔다.",
+@@ -21,21 +21,21 @@ def test_남는_문장은_원문_그대로다() -> None:
+         assert any(sentence in original for original in paras), "문장을 다시 쓰면 안 된다"
+ 
+ 
+-def test_바이라인은_앞머리만_뗀다() -> None:
++def test_byline_is_trimmed_not_the_whole_paragraph() -> None:
+     """문단을 통째로 버리면 리드 문장이 같이 날아간다. 연합뉴스가 그 형태다."""
+     kept, log = clean_paragraphs(["(서울=연합뉴스) 이도흔 기자 = 본문이 여기서 시작된다."])
+     assert kept == ["본문이 여기서 시작된다."]
+     assert log[0][0] == "byline_paren"
+ 
+ 
+-def test_저작권_문단은_버린다() -> None:
++def test_copyright_paragraph_is_dropped() -> None:
+     kept, _log = clean_paragraphs(
+         ["기사 본문이 충분히 길게 이어지는 문장이다.", "ⓒ 무단 전재 및 재배포 금지"]
+     )
+     assert kept == ["기사 본문이 충분히 길게 이어지는 문장이다."]
+ 
+ 
+-def test_머리_규칙은_본문_시작_전까지만_적용된다() -> None:
++def test_lead_rules_stop_at_the_first_body_sentence() -> None:
+     """기사 중간의 날짜 줄까지 지우면 떨어져 있던 문장이 붙어 원문에 없던 흐름이 생긴다."""
+     paras = [
+         "2026-09-18 15:30",  # 머리 — 지운다
+@@ -46,21 +46,21 @@ def test_머리_규칙은_본문_시작_전까지만_적용된다() -> None:
+     assert kept == paras[1:]
+ 
+ 
+-def test_종결부호_없는_짧은_머리줄은_부제로_본다() -> None:
++def test_short_lead_line_without_terminator_is_a_subhead() -> None:
+     paras = ["HBM 공급 확대", "회사는 공급을 늘리겠다고 밝혔다."]
+     kept, log = clean_paragraphs(paras)
+     assert kept == ["회사는 공급을 늘리겠다고 밝혔다."]
+     assert ("subhead", "HBM 공급 확대") in log
+ 
+ 
+-def test_중국어_문단은_부제로_오해하지_않는다() -> None:
++def test_chinese_paragraph_is_not_mistaken_for_a_subhead() -> None:
+     """마침표가 '。' 라서 종결부호 판정에서 빠지면 멀쩡한 본문이 부제로 버려진다."""
+     paras = ["台積電表示本季產能已經全部售罄。", "다음 문장이 이어진다."]
+     kept, _log = clean_paragraphs(paras)
+     assert paras[0] in kept
+ 
+ 
+-def test_제목을_본문에_한번_더_실은_것은_버린다() -> None:
++def test_title_echoed_in_the_body_is_dropped() -> None:
+     title = "칩 위에 메모리 통째로 얹었다 삼성전자 zHBM 승부수"
+     kept, log = clean_paragraphs([title, "삼성전자가 기술 비전을 공개했다."], title=title)
+     assert kept == ["삼성전자가 기술 비전을 공개했다."]
+diff --git a/ai/tests/test_news_link_fetch.py b/ai/tests/test_news_link_fetch.py
+index 04b862f..29ac2c5 100644
+--- a/ai/tests/test_news_link_fetch.py
++++ b/ai/tests/test_news_link_fetch.py
+@@ -24,7 +24,7 @@ def _client(handler) -> httpx.AsyncClient:
+     return httpx.AsyncClient(transport=httpx.MockTransport(handler))
+ 
+ 
+-async def test_기사를_열면_발췌가_본문의_앞부분이다() -> None:
++async def test_excerpt_is_the_head_of_the_article_body() -> None:
+     async def handler(request: httpx.Request) -> httpx.Response:
+         return httpx.Response(200, html=ARTICLE_HTML)
+ 
+@@ -40,7 +40,7 @@ async def handler(request: httpx.Request) -> httpx.Response:
+     assert body.fetched_at.tzinfo is not None, "naive datetime 을 쓰지 않는다"
+ 
+ 
+-async def test_단축_URL_은_최종_주소로_풀린다() -> None:
++async def test_shortened_url_resolves_to_its_final_address() -> None:
+     """본문을 못 읽어도 이게 이 기능의 1번 값어치다. 모델이 출처를 알아본다."""
+ 
+     async def handler(request: httpx.Request) -> httpx.Response:
+@@ -55,7 +55,7 @@ async def handler(request: httpx.Request) -> httpx.Response:
+     assert body.domain == "www.ytn.co.kr"
+ 
+ 
+-async def test_PDF_는_본문_없이_도메인만_남긴다() -> None:
++async def test_pdf_keeps_only_the_domain() -> None:
+     async def handler(request: httpx.Request) -> httpx.Response:
+         return httpx.Response(200, content=b"%PDF-1.4", headers={"content-type": "application/pdf"})
+ 
+@@ -67,7 +67,7 @@ async def handler(request: httpx.Request) -> httpx.Response:
+     assert body.excerpt is None
+ 
+ 
+-async def test_봇을_막는_사이트는_http_error_로_남는다() -> None:
++async def test_bot_blocking_site_is_recorded_as_http_error() -> None:
+     async def handler(request: httpx.Request) -> httpx.Response:
+         return httpx.Response(401)
+ 
+@@ -78,7 +78,7 @@ async def handler(request: httpx.Request) -> httpx.Response:
+     assert body.http_status == 401
+ 
+ 
+-async def test_네트워크가_끊겨도_예외를_올리지_않는다() -> None:
++async def test_network_failure_does_not_raise() -> None:
+     async def handler(request: httpx.Request) -> httpx.Response:
+         raise httpx.ConnectError("boom", request=request)
+ 
+@@ -89,7 +89,7 @@ async def handler(request: httpx.Request) -> httpx.Response:
+     assert body.error is not None and body.error.startswith("ConnectError")
+ 
+ 
+-async def test_EUC_KR_기사도_깨지지_않는다() -> None:
++async def test_euc_kr_article_is_not_mojibake() -> None:
+     """httpx 는 charset 이 없으면 utf-8 로 읽는다. 국내 매체에는 아직 EUC-KR 이 있다."""
+     html = ARTICLE_HTML.replace("<head>", '<head><meta charset="euc-kr">')
+ 
+@@ -105,7 +105,7 @@ async def handler(request: httpx.Request) -> httpx.Response:
+     assert body.excerpt is not None and "삼성전자" in body.excerpt
+ 
+ 
+-async def test_본문을_못_찾으면_no_body_다() -> None:
++async def test_missing_body_is_recorded_as_no_body() -> None:
+     async def handler(request: httpx.Request) -> httpx.Response:
+         return httpx.Response(200, html="<html><body><div id='app'></div></body></html>")
+ 
+@@ -124,11 +124,11 @@ async def handler(request: httpx.Request) -> httpx.Response:
+         ("ftp://example.com/x", False),
+     ],
+ )
+-def test_티커_문자열은_링크로_보지_않는다(url: str, expected: bool) -> None:
++def test_ticker_string_is_not_treated_as_a_link(url: str, expected: bool) -> None:
+     assert is_fetchable(url) is expected
+ 
+ 
+-async def test_같은_링크는_한_번만_연다() -> None:
++async def test_duplicate_url_is_fetched_only_once() -> None:
+     """한 채널이 같은 기사를 여러 번 올린다. 중복이어도 결과는 준 순서대로 다시 깔린다."""
+     calls: list[str] = []
+ 
+@@ -144,7 +144,7 @@ async def handler(request: httpx.Request) -> httpx.Response:
+     assert [b.url for b in bodies] == urls
+ 
+ 
+-async def test_결과는_입력과_길이가_다를_수_있다() -> None:
++async def test_result_length_may_differ_from_input() -> None:
+     """**호출 측이 인덱스로 짝지으면 안 된다는 뜻이다.** url 로 맞춰야 한다.
+ 
+     열어볼 값어치가 없는 주소(텔레그램이 티커를 링크로 만든 것)는 아예 빠져서
+diff --git a/ai/tests/test_news_link_live.py b/ai/tests/test_news_link_live.py
+new file mode 100644
+index 0000000..35c194e
+--- /dev/null
++++ b/ai/tests/test_news_link_live.py
+@@ -0,0 +1,142 @@
++"""텔레그램 채널이 실제로 올린 뉴스 링크를 진짜로 열어 본다.
++
++**기본 실행에서 빠진다.** 남의 사이트를 실제로 두드리므로 마커를 줘야 돈다.
++
++    uv run pytest -m network -s      # -s 를 줘야 결과가 보인다
++
++## 왜 따로 있나
++
++다른 테스트는 `MockTransport` 로 **우리가 만든 HTML** 을 읽는다. 그건 우리가 아는
++모양만 담는다. 실제 매체는 기사 영역 선택자도, 바이라인 형식도, 인코딩도 제각각이라
++진짜로 열어봐야 `clean.py` 의 규칙이 통하는지 알 수 있다.
++
++예를 들어 연합뉴스는 `(서울=연합뉴스) OOO 기자 = ` 바로 뒤에 첫 문장이 붙는다.
++문단을 통째로 버리면 리드 문장이 같이 날아가서 `byline_paren` 이 앞머리만 뗀다.
++이 규칙이 계속 통하는지는 연합뉴스를 실제로 열어봐야만 안다.
++
++## 링크를 고른 기준
++
++`CHANNELS.md` 의 **A등급**(증권사 리서치 공식 채널)이 2026-09 에 올린 것들이다.
++한국어·영어·중국어와 네이버 블로그가 섞이도록, 그리고 **안 열리는 것 하나**가
++들어가도록 골랐다. 한 매체만 보면 규칙이 통하는지 알 수 없다.
++
++사이트가 기사를 내리거나 구조를 바꾸면 이 테스트는 깨진다. 그때는 규칙이 아니라
++**URL 을 갈아 끼우면 된다.** 규칙을 고치기 전에 눈으로 먼저 볼 것:
++
++    uv run python -m app.services.news_link <주소> --paragraphs
++"""
++
++import asyncio
++
++import pytest
++
++from app.services.news_link import fetch_link_bodies
++from app.services.news_link.sentence import split_sentences
++
++pytestmark = pytest.mark.network
++
++# (채널, 주소). 채널은 CHANNELS.md 의 A등급이다.
++ARTICLES = [
++    ("globalmktinsight", "https://www.yna.co.kr/view/AKR20260917177300002"),
++    ("skitteam", "https://www.ytn.co.kr/_ln/0104_202609170958228832"),
++    ("merITz_tech", "https://n.news.naver.com/mnews/article/374/0000533568"),
++    ("KISGregKim", "https://zdnet.co.kr/view/?no=20260918130309"),
++    ("egzion", "https://m.blog.naver.com/egzion/224413431430"),
++    ("merITz_tech", "https://www.cnbc.com/2026/09/17/nvidia-huang-ai-chip-guidance.html"),
++    ("skitteam", "https://wccftech.com/amd-notifies-partners-of-10-price-hike/amp/"),
++    (
++        "skitteam",
++        (
++            "https://www.techpowerup.com/352788/"
++            "amd-plans-10-price-hike-across-gpus-chipsets-and-possibly-cpus"
++        ),
++    ),
++    ("merITz_tech", "https://udn.com/news/story/7252/9760106"),
++    # 본문을 못 읽는 쪽도 하나 넣는다. 절반은 원래 안 열리므로(fetch.py 맨 위 실측),
++    # "못 읽어도 도메인은 남는다" 를 지키는지가 오히려 중요하다.
++    (
++        "skitteam",
++        (
++            "https://counterpointresearch.com/ko/insights/"
++            "samsung-apple-global-smartphone-share-2026-h1"
++        ),
++    ),
++]
++
++# 발췌에 남아 있으면 안 되는 것들. 전부 실제 기사에서 나왔던 표현이다.
++# 앞 3문장만 싣는데 이런 것이 한 칸을 차지하면 근거가 그만큼 줄어든다.
++JUNK = [
++    "무단 전재",
++    "저작권자",
++    "재배포 금지",
++    "Copyright",
++    "All rights reserved",
++    "기자 =",  # 연합뉴스·뉴스핌 바이라인
++    "특파원 =",
++    "구독하기",
++    "Subscribe to",
++    "per month",  # ft.com 유료 구독 광고
++]
++
++
++@pytest.fixture(scope="module")
++def bodies():
++    """10건을 한 번만 연다. 테스트마다 열면 남의 서버를 그만큼 더 두드린다."""
++    return asyncio.run(fetch_link_bodies([url for _, url in ARTICLES]))
++
++
++def test_results_are_printed_for_human_review(bodies) -> None:
++    """단언보다 **보이는 것**이 목적이다. `-s` 로 돌리면 발췌가 그대로 찍힌다.
++
++    정제 규칙을 손볼 때 이 출력을 전후로 비교한다. 숫자만 보는 단언으로는
++    "발췌가 기사 서두가 맞는가" 를 사람이 판단할 수 없다.
++    """
++    by_url = {b.url: b for b in bodies}
++    print()
++    for channel, url in ARTICLES:
++        body = by_url[url]
++        print("=" * 78)
++        print(f"{channel:<18} {body.domain}  [{body.status}] {body.chars}자")
++        print(f"  제목  {body.title}")
++        if body.excerpt:
++            print("  발췌  " + body.excerpt.replace("\n", "\n        "))
++        else:
++            print(f"  발췌  (없음 — {body.error or body.content_type or body.http_status})")
++
++    assert len(by_url) == len(ARTICLES), "중복 없는 주소를 줬으니 전부 돌아와야 한다"
++
++
++def test_domain_survives_even_when_body_is_unreadable(bodies) -> None:
++    """이게 이 기능의 1번 값어치다. 모델은 `buly.kr/xxx` 만 보고는 출처를 모른다."""
++    for body in bodies:
++        assert body.domain, f"{body.url} — status={body.status} 인데 도메인도 없다"
++        assert body.final_url
++
++
++def test_excerpt_respects_length_and_sentence_limits(bodies) -> None:
++    """400자·3문장. 문장 세는 규칙은 자르는 쪽과 **같은 함수**를 쓴다."""
++    for body in (b for b in bodies if b.status == "ok"):
++        assert body.excerpt
++        assert len(body.excerpt) <= 400, f"{body.domain} — {len(body.excerpt)}자"
++        sentences = split_sentences(body.excerpt)
++        assert len(sentences) <= 3, f"{body.domain} — {len(sentences)}문장"
++        assert body.chars == len(body.excerpt)
++
++
++def test_excerpt_has_no_non_article_text(bodies) -> None:
++    """정제 규칙이 실제 매체에서도 통하는지 보는 것이 이 파일의 핵심이다."""
++    for body in (b for b in bodies if b.status == "ok"):
++        for junk in JUNK:
++            assert junk not in body.excerpt, f"{body.domain} 발췌에 '{junk}' 가 남았다"
++        assert body.excerpt == body.excerpt.strip()
++
++
++def test_most_articles_still_open(bodies) -> None:
++    """느슨하게 잡는다. 매체가 봇을 막기 시작하면 줄어드는 게 정상이고 그건
++    정제 규칙의 잘못이 아니다. **전부 막히는 것**만 잡아낸다.
++    """
++    opened = [b for b in bodies if b.status == "ok"]
++    assert len(opened) >= 5, (
++        f"10건 중 {len(opened)}건만 열렸다. 기사가 내려갔거나 사이트 구조가 바뀐 것일 수 있다. "
++        "정제 규칙을 고치기 전에 --paragraphs 로 먼저 확인할 것"
++    )
+diff --git a/ai/tests/test_news_link_sentence.py b/ai/tests/test_news_link_sentence.py
+index e00ecb4..789d790 100644
+--- a/ai/tests/test_news_link_sentence.py
++++ b/ai/tests/test_news_link_sentence.py
+@@ -3,18 +3,18 @@
+ from app.services.news_link.sentence import first_sentences, sentence_ends, split_sentences
+ 
+ 
+-def test_소수점에서_끊지_않는다() -> None:
++def test_decimal_point_is_not_a_sentence_end() -> None:
+     body = "주가는 $1.56 에 마감했다. 거래량은 평소의 두 배였다."
+     assert len(split_sentences(body)) == 2
+ 
+ 
+-def test_약어에서_끊지_않는다() -> None:
++def test_abbreviation_is_not_a_sentence_end() -> None:
+     """U.S. · Sept. 에서 끊으면 3문장 발췌가 6문장으로 세어진다."""
+     body = "The U.S. market closed higher on Sept. 17 amid chip demand. Traders were upbeat."
+     assert len(split_sentences(body)) == 2
+ 
+ 
+-def test_숫자로_끝나는_문장은_안_끊긴다_알려진_한계다() -> None:
++def test_sentence_ending_in_a_number_is_not_split_known_limit() -> None:
+     """소수점($1.56)에서 안 끊으려고 숫자 뒤 마침표를 전부 제외한 대가다.
+ 
+     발췌가 의도보다 길어질 뿐 글자를 바꾸지는 않으므로 상한이 받아낸다.
+@@ -24,33 +24,33 @@ def test_숫자로_끝나는_문장은_안_끊긴다_알려진_한계다() -> No
+     assert len(split_sentences(body)) == 1
+ 
+ 
+-def test_문단_경계도_문장_끝으로_친다() -> None:
++def test_paragraph_break_counts_as_a_sentence_end() -> None:
+     """마침표 없이 끝나는 소제목에서 안 끊으면 세 문장이 본문 절반을 삼킨다."""
+     body = "1. 유가\n유가가 올랐다. 정유주가 강세였다."
+     assert split_sentences(body)[0] == "1. 유가"
+ 
+ 
+-def test_발췌는_언제나_본문의_앞부분_그대로다() -> None:
++def test_excerpt_is_always_the_verbatim_head() -> None:
+     body = "첫 문장이다. 둘째 문장이다. 셋째 문장이다. 넷째 문장이다."
+     excerpt = first_sentences(body, 3, 400)
+     assert body.startswith(excerpt)
+     assert excerpt.endswith("셋째 문장이다.")
+ 
+ 
+-def test_상한을_넘으면_문장_경계로_되돌린다() -> None:
++def test_over_the_cap_falls_back_to_a_sentence_boundary() -> None:
+     """상한에서 그냥 자르면 발췌가 문장 중간에서 끝나 모델이 잘못 읽는다."""
+     body = "짧은 문장이다. " + "아주 " * 100 + "긴 문장이다."
+     excerpt = first_sentences(body, 3, 40)
+     assert excerpt == "짧은 문장이다."
+ 
+ 
+-def test_문장이_하나도_안_끝나면_전체를_준다() -> None:
++def test_no_sentence_end_returns_the_whole_body() -> None:
+     body = "마침표가 없는 한 줄짜리 본문"
+     assert first_sentences(body, 3, 400) == body
+     assert sentence_ends(body) == []
+ 
+ 
+-def test_문장_경계가_없고_상한도_넘으면_상한에서_자른다() -> None:
++def test_no_boundary_and_over_the_cap_cuts_at_the_cap() -> None:
+     """유일하게 발췌가 문장 중간에서 끝나는 경로다. 그래도 **앞부분 그대로**는 지킨다.
+ 
+     되돌릴 문장 경계가 하나도 없으니 상한에서 자르는 수밖에 없다. 말은 끊기지만
+
+From 9e11a4c6bd60fc7b822483c50a02fea2ca663309 Mon Sep 17 00:00:00 2001
+From: swimny <rlatnud052985@gmail.com>
+Date: Tue, 22 Sep 2026 22:22:42 +0900
+Subject: [PATCH 3/3] =?UTF-8?q?refactor(ai):=20=EB=89=B4=EC=8A=A4=20?=
+ =?UTF-8?q?=EB=A7=81=ED=81=AC=20=EB=A7=A4=EC=A7=81=20=EB=84=98=EB=B2=84?=
+ =?UTF-8?q?=EB=A5=BC=20=EC=9D=B4=EB=A6=84=20=EC=9E=88=EB=8A=94=20=EC=83=81?=
+ =?UTF-8?q?=EC=88=98=EB=A1=9C=20=EB=B6=84=EB=A6=AC?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ ai/app/services/news_link/clean.py   |  7 ++++-
+ ai/app/services/news_link/extract.py | 47 +++++++++++++++++++++-------
+ ai/app/services/news_link/fetch.py   | 12 +++++--
+ 3 files changed, 51 insertions(+), 15 deletions(-)
+
+diff --git a/ai/app/services/news_link/clean.py b/ai/app/services/news_link/clean.py
+index 8e3d902..160a367 100644
+--- a/ai/app/services/news_link/clean.py
++++ b/ai/app/services/news_link/clean.py
+@@ -84,6 +84,11 @@
+ # 종결부호가 없다는 것이 강한 신호다 — 기사 문장은 "다." 나 "." 로 끝난다.
+ SUBHEAD_MAX = 120
+ 
++# 본문에 다시 실린 제목을 찾을 때, 제목이 이보다 짧으면 대조하지 않는다.
++# 짧은 제목("코스피 급등")은 멀쩡한 본문 문장 안에도 그대로 들어 있어서,
++# 기사 첫 문장을 제목으로 오인해 지우게 된다.
++TITLE_ECHO_MIN_CHARS = 10
++
+ 
+ def looks_like_sentence(text: str) -> bool:
+     return bool(SENT_TAIL_RE.search(text.strip()))
+@@ -122,7 +127,7 @@ def clean_paragraphs(
+             # 제목을 본문에 한 번 더 싣는 매체가 있다. 제목은 이미 title 에 있다.
+             if (
+                 normalized_title
+-                and len(normalized_title) > 10
++                and len(normalized_title) > TITLE_ECHO_MIN_CHARS
+                 and re.sub(r"\s+", "", text) in normalized_title
+             ):
+                 log.append(("title_echo", text))
+diff --git a/ai/app/services/news_link/extract.py b/ai/app/services/news_link/extract.py
+index db6ff98..63467e4 100644
+--- a/ai/app/services/news_link/extract.py
++++ b/ai/app/services/news_link/extract.py
+@@ -33,6 +33,27 @@
+ # 갈라져, 어느 쪽을 고쳐야 하는지 모르게 된다.
+ MIN_PARA_CHARS = 25
+ 
++# 본문으로 인정할 최소 문단 수. `article_paragraphs` 가 문단과 함께 이 값을 돌려주는
++# 것은, 문단을 어느 경로로 주웠는지 아는 쪽이 거기이기 때문이다.
++MIN_PARAS_KNOWN_AREA = 1  # 아는 기사 영역에서 주웠다. 문단 하나여도 본문이다.
++MIN_PARAS_WHOLE_PAGE = 2  # 페이지 전체에서 <p> 를 주웠다. 하나뿐이면 본문이 아닐 확률이 높다.
++
++# 제목은 로그·표에 한 줄로 찍힌다. 그보다 길면 읽는 데 도움이 안 된다.
++TITLE_MAX_CHARS = 120
++
++# 선택자가 맞았어도 이만큼은 돼야 기사 영역으로 인정한다. 본문을 JS 로 그리는
++# 페이지는 <article> 껍데기만 두고 오는데, 그걸 기사 영역으로 믿으면 빈 본문을
++# 확신을 갖고 내보내게 된다.
++MIN_KNOWN_AREA_CHARS = 150
++
++# 아래 둘은 되돌림 경로에서만 쓴다 (기사 영역을 못 찾아 <p> 를 부모별로 묶었을 때).
++# 가장 두꺼운 덩어리 대비 이만큼은 돼야 "같은 기사의 일부" 로 본다. 낮추면 사이드바가,
++# 올리면 리드 문단이 딸려 들어온다.
++MIN_GROUP_RATIO = 0.15
++# 공통 조상으로 다시 모은 결과가 이 배수를 넘으면 조상이 너무 넓은 것이다
++# (관련기사·추천글까지 들어왔다는 뜻). 그때는 가장 두꺼운 덩어리로 되돌린다.
++MAX_MERGED_RATIO = 3
++
+ 
+ def _squash(text: str) -> str:
+     return re.sub(r"[ \t\xa0]+", " ", text).strip()
+@@ -56,7 +77,11 @@ def _common_ancestor(nodes: list) -> object | None:
+ 
+ 
+ def article_paragraphs(html_text: str) -> tuple[str, list[str], int]:
+-    """**정제 전** 문단 목록. (제목, 문단들, 최소문단수) 를 돌려준다."""
++    """**정제 전** 문단 목록.
++
++    (제목, 문단들, 최소문단수) 를 돌려준다. 최소문단수는 MIN_PARAS_KNOWN_AREA
++    아니면 MIN_PARAS_WHOLE_PAGE 이고, 그대로 `finish` 에 넘기면 된다.
++    """
+     soup = BeautifulSoup(html_text, "html.parser")
+     for tag in soup(
+         ["script", "style", "nav", "header", "footer", "aside",
+@@ -72,12 +97,12 @@ def article_paragraphs(html_text: str) -> tuple[str, list[str], int]:
+         title = og_title["content"]
+     elif soup.title and soup.title.string:
+         title = soup.title.string
+-    title = re.sub(r"\s+", " ", title or "").strip()[:120]
++    title = re.sub(r"\s+", " ", title or "").strip()[:TITLE_MAX_CHARS]
+ 
+     node = None
+     for selector in ARTICLE_SELECTORS:
+         found = soup.select_one(selector)
+-        if found and len(found.get_text(" ", strip=True)) > 150:
++        if found and len(found.get_text(" ", strip=True)) > MIN_KNOWN_AREA_CHARS:
+             node = found
+             break
+ 
+@@ -94,7 +119,7 @@ def article_paragraphs(html_text: str) -> tuple[str, list[str], int]:
+             paras = [
+                 t for t in (_squash(x) for x in node.get_text("\n").split("\n")) if _keep_para(t)
+             ]
+-        return title, paras, 1
++        return title, paras, MIN_PARAS_KNOWN_AREA
+ 
+     # 아는 기사 영역이 없다. <p> 를 **부모별로 묶어** 두꺼운 덩어리만 쓴다.
+     # 페이지 전체에서 <p> 를 긁으면 푸터의 회사 소개가 첫 문장이 된다
+@@ -109,7 +134,7 @@ def article_paragraphs(html_text: str) -> tuple[str, list[str], int]:
+         group = groups.setdefault(id(p.parent), {"node": p.parent, "paras": []})
+         group["paras"].append(text)
+     if not groups:
+-        return title, [], 1
++        return title, [], MIN_PARAS_WHOLE_PAGE
+ 
+     def weight(group: dict) -> int:
+         return sum(len(t) for t in group["paras"])
+@@ -119,7 +144,7 @@ def weight(group: dict) -> int:
+     # 덩어리만 쓰면 리드 문단을 건너뛰고 기사 중간부터 자르게 되는데, "본문 앞 3문장"
+     # 이라고 넘긴 것이 실은 중간이면 모델이 잘못 읽는다. 그래서 의미 있는 덩어리들의
+     # 공통 조상을 잡아 문서 순서대로 다시 모은다.
+-    significant = [g["node"] for g in groups.values() if weight(g) >= weight(best) * 0.15]
++    significant = [g["node"] for g in groups.values() if weight(g) >= weight(best) * MIN_GROUP_RATIO]
+     ancestor = _common_ancestor(significant)
+     if ancestor is not None and ancestor.name not in ("body", "html", "[document]"):
+         merged = [
+@@ -129,15 +154,15 @@ def weight(group: dict) -> int:
+         ]
+         merged = [t for t in merged if _keep_para(t)]
+         # 조상이 너무 넓으면(관련기사·추천글까지 들어오면) 되돌린다
+-        if merged and sum(len(t) for t in merged) <= weight(best) * 3:
+-            return title, merged, 2
+-    return title, best["paras"], 2
++        if merged and sum(len(t) for t in merged) <= weight(best) * MAX_MERGED_RATIO:
++            return title, merged, MIN_PARAS_WHOLE_PAGE
++    return title, best["paras"], MIN_PARAS_WHOLE_PAGE
+ 
+ 
+-def finish(title: str, paragraphs: list[str], min_paras: int = 1) -> str:
++def finish(title: str, paragraphs: list[str], min_paras: int = MIN_PARAS_KNOWN_AREA) -> str:
+     """문단을 정제해 본문 문자열로 만든다. 모든 경로가 여기로 나간다.
+ 
+-    min_paras=2 는 되돌림 경로에서만 쓴다. 기사 영역을 못 찾아 페이지 전체에서
++    MIN_PARAS_WHOLE_PAGE 는 되돌림 경로에서만 쓴다. 기사 영역을 못 찾아 페이지 전체에서
+     <p> 를 주운 상황이라, 문단 하나는 본문이 아니라 회사 소개일 확률이 높다.
+     없는 것이 틀린 것보다 낫다 — 모델은 발췌를 기사 서두로 읽는다.
+     """
+diff --git a/ai/app/services/news_link/fetch.py b/ai/app/services/news_link/fetch.py
+index e6166ee..eff9150 100644
+--- a/ai/app/services/news_link/fetch.py
++++ b/ai/app/services/news_link/fetch.py
+@@ -54,6 +54,12 @@
+ # 그만큼 수집 전체가 늦어진다. PDF 를 받는 analyst 쪽(30초)과 값이 다른 이유다.
+ DEFAULT_TIMEOUT_SEC = 12.0
+ 
++# <meta charset> 은 <head> 에 있다. 뒤까지 뒤지면 본문에 인용된 charset 문자열을
++# 인코딩으로 착각한다.
++META_CHARSET_SCAN_BYTES = 4096
++# 예외 메시지는 표에 한 칸으로 찍힌다. 전문이 필요하면 로그를 본다.
++ERROR_MSG_MAX_CHARS = 70
++
+ HTML_TYPES = ("text/html", "application/xhtml+xml")
+ _META_CHARSET_RE = re.compile(rb"""charset\s*=\s*["']?\s*([\w\-]+)""", re.IGNORECASE)
+ 
+@@ -93,7 +99,7 @@ def decode_html(content: bytes, content_type: str) -> str:
+     if "charset=" in content_type.lower():
+         encoding = content_type.lower().split("charset=")[1].split(";")[0].strip(" \"'")
+     if not encoding:
+-        found = _META_CHARSET_RE.search(content[:4096])
++        found = _META_CHARSET_RE.search(content[:META_CHARSET_SCAN_BYTES])
+         if found:
+             encoding = found.group(1).decode("ascii", "ignore")
+     try:
+@@ -118,7 +124,7 @@ async def fetch_link(
+         async with client.stream("GET", url, headers=HEADERS, follow_redirects=True) as response:
+             body.final_url = str(response.url)
+             body.domain = urlparse(str(response.url)).netloc
+-            if response.status_code != 200:
++            if response.status_code != httpx.codes.OK:
+                 body.status = "http_error"
+                 body.http_status = response.status_code
+                 return body
+@@ -158,7 +164,7 @@ async def fetch_link(
+         body.status = "ok" if excerpt else "no_body"
+     except Exception as exc:  # noqa: BLE001 — 네트워크·인코딩·파싱 전부. 링크 하나에 수집이 멈추면 안 된다
+         body.status = "error"
+-        body.error = f"{type(exc).__name__}: {str(exc)[:70]}"
++        body.error = f"{type(exc).__name__}: {str(exc)[:ERROR_MSG_MAX_CHARS]}"
+         # 본문을 못 읽어도 **어디로 가는 주소인지는 건질 수 있다.** 리다이렉트는
+         # 성공하고 목적지에서 응답이 끊기는 경우가 있다(globenewswire 가 그랬다).
+         if body.final_url is None:

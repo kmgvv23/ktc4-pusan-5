@@ -1,0 +1,628 @@
+[
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4033307299",
+    "pull_request_review_id": 5231307716,
+    "id": 4033307299,
+    "node_id": "PRRC_kwDOT-Ei5M7wZ2Kj",
+    "diff_hunk": "@@ -0,0 +1,354 @@\n+\"\"\"네이버 증권 리서치 어댑터.\n+\n+    목록  GET m.stock.naver.com/api/research/{category}?page=1&pageSize=100\n+    상세  GET m.stock.naver.com/api/research/{category}/{researchId}\n+    원문  GET stock.pstatic.net/stock-research/.../*.pdf\n+\n+인증이 없다. 확인한 것(2026-09-14 실측):\n+    - 카테고리 5종. `daily` 와 `market` 은 researchId 까지 같은 동일 데이터라 daily 만 받는다.\n+    - 상세 채움률(n=20): attachUrl·content·opinion 20/20, goalPrice 14/20.\n+    - 요약(content)은 HTML 이고 태그를 걷으면 평균 517자.\n+    - pageSize=100 까지 먹고 page=3000 이 2016년까지 간다. 백필 깊이는 제한이 아니다.\n+    - 종목코드·투자의견·목표주가는 `company` 에만 있다. 나머지는 제목과 PDF 뿐이다.\n+\n+네이버가 싣는 증권사는 21곳뿐이다. 삼성·NH 는 0건, 한국투자는 2건이었다(3주 실측).\n+대형사 리포트는 여기 안 들어온다 — 다른 경로로 따로 받아야 한다.\n+\n+## 왜 여기만 클래스인가\n+\n+backend 의 `services/news/naver.py` 나 `dart_client.py` 는 모듈 함수이고 httpx 를\n+호출마다 새로 연다. 호출이 한 번이라 그래도 된다. 여기는 다르다 —\n+카테고리 5개 × 목록 페이지 + **건당 상세 1회 + PDF 1회**라, 일주일치 500건이면\n+HTTP 호출이 1,000회를 넘는다. 매번 AsyncClient 를 새로 열면 TCP 연결과 TLS\n+핸드셰이크를 그만큼 반복한다. 커넥션을 재사용하려고 클래스로 뒀다.\n+\"\"\"\n+\n+import asyncio\n+import hashlib\n+import html\n+import logging\n+import re\n+import tempfile\n+from datetime import UTC, date, datetime\n+from pathlib import Path\n+from typing import Any, Self\n+\n+import httpx\n+\n+from app.core.config import settings\n+from app.services.analyst.pdf import PDF_MAX_BYTES, extract_pdf_text\n+from app.services.analyst.schema import AnalystReportItem, PdfText\n+\n+logger = logging.getLogger(__name__)\n+\n+BASE_URL = \"https://m.stock.naver.com/api/research\"\n+CATEGORIES = (\"company\", \"industry\", \"economy\", \"invest\", \"daily\")\n+\n+# 네이버 웹에서 오는 요청처럼 보이게 한다. 없으면 차단되는 경로가 있다.\n+HEADERS = {\n+    \"User-Agent\": (\n+        \"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 \"\n+        \"(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1\"\n+    ),\n+    \"Referer\": \"https://m.stock.naver.com/research\",\n+}\n+\n+\n+class NaverResearchError(Exception):\n+    \"\"\"네이버 리서치 호출 실패. 원인 예외는 __cause__ 에 남는다.\"\"\"\n+\n+\n+# ---------------------------------------------------------------- 파싱 유틸\n+\n+_TAG = re.compile(r\"<[^>]+>\")\n+_WS = re.compile(r\"[ \\t ]+\")\n+\n+\n+def strip_html(raw: str | None) -> str | None:\n+    \"\"\"네이버 요약은 <p><br><strong> 이 섞인 HTML 이다. 줄바꿈은 살리고 태그만 걷는다.\"\"\"\n+    if not raw:\n+        return None\n+    text = re.sub(r\"<br\\s*/?>\", \"\\n\", raw, flags=re.IGNORECASE)\n+    text = re.sub(r\"</p\\s*>\", \"\\n\\n\", text, flags=re.IGNORECASE)\n+    text = _TAG.sub(\"\", text)\n+    text = html.unescape(text)\n+    text = _WS.sub(\" \", text)\n+    text = re.sub(r\"\\n{3,}\", \"\\n\\n\", text)\n+    return text.strip() or None\n+\n+\n+def to_int(raw: Any) -> int | None:\n+    \"\"\"네이버는 숫자를 문자열로 준다. 빈 값·콤마·'-' 가 섞여 온다.\"\"\"\n+    if raw is None:\n+        return None\n+    s = str(raw).strip().replace(\",\", \"\")\n+    if s in (\"\", \"-\", \"0\"):\n+        return None if s in (\"\", \"-\") else 0\n+    try:\n+        return int(float(s))\n+    except ValueError:\n+        return None\n+\n+\n+# 한국IR협의회가 AI 로 생성해 올리는 기업소개 자료. 제목이 \"[AI] \" 로 시작한다.\n+# 받지 않는다 — 애널리스트 리포트가 아니고, 실제로 데이터가 틀려 있다.\n+#   아이디스홀딩스(054800) 제목 = \"[AI] 풍력 터빈용 피치·요 베어링 제조기업\"\n+#   씨에스베어링(297090)   제목 = \"[AI] 풍력 터빈용 피치·요 베어링 제조기업\"  ← 같은 제목\n+#   에르코스(435570)       제목 = \"[AI] 영상보안·모니터·프린터 지주회사\"     ← 앞 종목 것\n+# 요약 본문은 종목과 맞는데 제목만 한 칸씩 밀려 있다. 네이버 API 원본이 그렇다(직접 확인).\n+# 투자의견·목표주가도 전부 비어 있어서 우리가 쓸 값이 없다.\n+_AI_TITLE = re.compile(r\"^\\s*\\[\\s*AI\\s*\\]\")\n+\n+\n+def is_ai_generated(item: AnalystReportItem) -> bool:\n+    return bool(_AI_TITLE.match(item.title or \"\"))\n+\n+\n+# ------------------------------------------------ 산업 리포트: 업종의견 + Top picks\n+#\n+# 산업 리포트는 종목이 아니라 업종에 의견을 낸다. 네이버가 이 값을 안 주므로 PDF 에서 뽑는다.\n+# **본문 앞 절반만 본다** — 뒤쪽에는 모든 리포트에 붙는 컴플라이언스 부록(\"투자의견 비율\",\n+# \"투자의견 변동 내역 및 목표주가 괴리율\")이 있고 거기엔 과거 의견이 잔뜩 적혀 있다.\n+# 실측: 한 리포트에서 \"목표주가\" 39회 중 36회가 부록이었다.\n+_SECTOR_OP = re.compile(\n+    r\"(Overweight|OVERWEIGHT|비중\\s?확대|Neutral|NEUTRAL|중\\s?립\"\n+    r\"|Underweight|UNDERWEIGHT|비중\\s?축소|Positive|긍정적|Negative|부정적)\"\n+)\n+_TOPPICK = re.compile(\n+    r\"(?:Top[\\s\\-]?picks?|탑\\s?픽|최선호주|최선호\\s?종목)\\s*[:：]?\\s*([^\\n]{2,80})\", re.IGNORECASE\n+)\n+_PICK_SPLIT = re.compile(r\"[,·/]| 및 |과 |와 \")\n+# Top pick 자리에 딸려 들어오는 말들. 종목명이 아니다.\n+_NOT_A_PICK = {\n+    \"유지\", \"및\", \"관심종목\", \"차선호주\", \"제시\", \"상향\", \"하향\", \"기타\",\n+    \"자동차\", \"2차전지\", \"top\", \"picks\", \"pick\",\n+}\n+\n+\n+def _norm_sector(s: str) -> str:\n+    s = s.lower().replace(\" \", \"\")\n+    if s in (\"overweight\", \"비중확대\", \"positive\", \"긍정적\"):\n+        return \"비중확대\"\n+    if s in (\"neutral\", \"중립\"):\n+        return \"중립\"\n+    if s in (\"underweight\", \"비중축소\", \"negative\", \"부정적\"):\n+        return \"비중축소\"\n+    return s\n+\n+\n+def extract_sector_view(body: str | None) -> tuple[str | None, list[str]]:\n+    \"\"\"(업종의견, Top picks). 못 찾으면 (None, []).\"\"\"\n+    if not body:\n+        return None, []\n+    head = body[: min(len(body) // 2, 8000)]\n+\n+    m = _SECTOR_OP.search(head)\n+    opinion = _norm_sector(m.group(1)) if m else None\n+\n+    picks: list[str] = []\n+    m = _TOPPICK.search(head)\n+    if m:\n+        # 차선호주·관심종목은 Top pick 이 아니다. 거기서 끊는다.\n+        raw = re.split(r\"\\s{2,}|차선호|관심종목|제시|이다|입니다\", m.group(1))[0]\n+        for tok in _PICK_SPLIT.split(raw):\n+            t = tok.strip(\" ‘’'\\\"()[]·:\")\n+            if (\n+                2 <= len(t) <= 14\n+                and re.search(r\"[가-힣A-Za-z]\", t)\n+                and t.lower() not in _NOT_A_PICK\n+                and not t.isdigit()\n+                and not re.search(r\"[\\]\\[]\", t)\n+            ):\n+                picks.append(t)\n+    return opinion, picks[:5]\n+\n+\n+def parse_list_row(category: str, row: dict[str, Any]) -> AnalystReportItem:\n+    return AnalystReportItem(\n+        source_id=str(row[\"researchId\"]),\n+        category=category,\n+        title=(row.get(\"title\") or \"\").strip(),\n+        broker=(row.get(\"brokerName\") or \"\").strip(),\n+        write_date=date.fromisoformat(row[\"writeDate\"]),\n+        item_code=row.get(\"itemCode\") or None,\n+        item_name=row.get(\"itemName\") or None,\n+        read_count=to_int(row.get(\"readCount\")),\n+        end_url=row.get(\"endUrl\"),\n+        raw=row,\n+    )\n+\n+\n+def merge_detail(item: AnalystReportItem, detail: dict[str, Any]) -> AnalystReportItem:\n+    \"\"\"상세 응답을 목록 행에 덮어쓴다. 상세에만 있는 게 요약·목표주가·PDF 링크다.\"\"\"\n+    content = detail.get(\"content\")\n+    item.attach_url = detail.get(\"attachUrl\") or None\n+    item.summary_html = content or None\n+    item.summary_text = strip_html(content)\n+    item.opinion = (detail.get(\"opinion\") or \"\").strip() or None\n+    item.goal_price = to_int(detail.get(\"goalPrice\"))\n+    # detail[\"prevGoalPrice\"] 는 직전 목표주가가 아니라 현재가의 중복이다(모델 주석 참고).\n+    item.price_at_write = to_int(detail.get(\"priceAtWriteDate\"))\n+    item.item_code = item.item_code or detail.get(\"itemCode\") or None\n+    item.item_name = item.item_name or detail.get(\"itemName\") or None\n+    item.raw = {\"list\": item.raw, \"detail\": detail}\n+    return item\n+\n+\n+def utcnow() -> datetime:\n+    return datetime.now(UTC)\n+\n+\n+# ---------------------------------------------------------------- 클라이언트\n+\n+\n+class NaverResearchClient:\n+    def __init__(self, client: httpx.AsyncClient | None = None) -> None:\n+        self._own = client is None\n+        self._client = client or httpx.AsyncClient(\n+            timeout=settings.http_timeout_sec, headers=HEADERS, follow_redirects=True\n+        )\n+\n+    async def aclose(self) -> None:\n+        if self._own:\n+            await self._client.aclose()\n+\n+    async def __aenter__(self) -> Self:\n+        return self\n+\n+    async def __aexit__(self, *exc: object) -> None:\n+        await self.aclose()\n+\n+    async def fetch_list(\n+        self, category: str, page: int = 1, page_size: int = 100\n+    ) -> tuple[list[dict[str, Any]], dict[str, Any], int]:\n+        \"\"\"(행들, 호출 파라미터, HTTP 상태).\"\"\"\n+        params = {\"page\": page, \"pageSize\": page_size}\n+        try:\n+            r = await self._client.get(f\"{BASE_URL}/{category}\", params=params)\n+            r.raise_for_status()\n+        except httpx.HTTPError as exc:\n+            raise NaverResearchError(f\"목록 실패 {category} p{page}\") from exc\n+        rows = r.json()\n+        return (rows if isinstance(rows, list) else []), params, r.status_code\n+\n+    async def fetch_detail(self, category: str, research_id: str) -> dict[str, Any]:\n+        try:\n+            r = await self._client.get(f\"{BASE_URL}/{category}/{research_id}\")\n+            r.raise_for_status()\n+        except httpx.HTTPError as exc:\n+            raise NaverResearchError(f\"상세 실패 {category}/{research_id}\") from exc\n+        return r.json().get(\"researchContent\") or {}\n+\n+    async def fetch_pdf_text(self, url: str | None) -> PdfText:",
+    "path": "ai/app/services/analyst/naver.py",
+    "commit_id": "099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "original_commit_id": "720399e2eb62bd0382600eb3934d182614536602",
+    "user": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "이 메소드가 NaverResearchClient 안에 구현되어 있는 이유가 궁금합니다. pdf에서 텍스트를 뽑아내는건 네이버에서만이 아니라 텔레그램 쪽에서도 해야 할 수 있을텐데 이런 내용이 pdf.py에 있다면 재사용하는데 도움이 되지 않을까 생각이 들어서요. 심각한 오류는 아닌데 개인적으로 궁금해서 코멘트 남깁니다!",
+    "created_at": "2026-09-17T05:06:29Z",
+    "updated_at": "2026-09-17T05:06:29Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4033307299",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4033307299"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4033307299"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4033307299/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 252,
+    "original_line": 242,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 242,
+    "position": 252,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4033359756",
+    "pull_request_review_id": 5231378684,
+    "id": 4033359756,
+    "node_id": "PRRC_kwDOT-Ei5M7waC-M",
+    "diff_hunk": "@@ -0,0 +1,189 @@\n+\"\"\"네이버 리서치 응답 파싱. 실제 응답을 그대로 붙여 픽스처로 쓴다.\n+\n+네트워크를 타지 않는다 — 남의 서버 사정에 우리 테스트가 흔들리면 안 된다.\n+\"\"\"\n+\n+from datetime import date\n+\n+import pytest\n+\n+from app.services.analyst.naver import (\n+    NaverResearchClient,\n+    extract_sector_view,\n+    is_ai_generated,\n+    merge_detail,\n+    parse_list_row,\n+    strip_html,\n+    to_int,\n+)\n+\n+# 2026-09-14 m.stock.naver.com/api/research/company?page=1 실제 응답 한 줄\n+LIST_ROW = {\n+    \"researchCategory\": \"종목분석\",\n+    \"category\": \"종목분석\",\n+    \"itemCode\": \"271560\",\n+    \"itemName\": \"오리온\",\n+    \"researchId\": 96141,\n+    \"title\": \"실적 안정성과 주주 환원으로 리레이팅 기대\",\n+    \"brokerName\": \"DS투자증권\",\n+    \"writeDate\": \"2026-09-14\",\n+    \"readCount\": \"613\",\n+    \"endUrl\": \"https://m.stock.naver.com/research/company/96141\",\n+}\n+\n+DETAIL = {\n+    \"itemCode\": \"271560\",\n+    \"itemName\": \"오리온\",\n+    \"researchId\": 96141,\n+    \"title\": \"실적 안정성과 주주 환원으로 리레이팅 기대\",\n+    \"brokerName\": \"DS투자증권\",\n+    \"writeDate\": \"2026-09-14\",\n+    \"readCount\": \"613\",\n+    \"attachUrl\": \"https://stock.pstatic.net/stock-research/company/66/20260914_company_148994000.pdf\",\n+    \"content\": \"<p><strong>26년 8월: 소비 둔화</strong></p><p><br>매출액 3,010억원(+9% YoY)</p>\",\n+    \"opinion\": \"매수\",\n+    \"goalPrice\": \"180000\",\n+    \"prevGoalPrice\": \"119300\",\n+    \"priceAtWriteDate\": \"119300\",\n+}\n+\n+# 산업분석에는 종목코드·투자의견·목표주가가 없다\n+INDUSTRY_DETAIL = {\n+    \"researchId\": \"46078\",\n+    \"title\": \"[매태호] 27년 국방예산으로 보는 K-방산 발전 방향성\",\n+    \"brokerName\": \"DS투자증권\",\n+    \"writeDate\": \"2026-09-14\",\n+    \"readCount\": \"445\",\n+    \"attachUrl\": \"https://stock.pstatic.net/stock-research/industry/199_20260914.pdf\",\n+    \"content\": \"<p>방산 예산이 늘었다</p>\",\n+}\n+\n+\n+def test_목록_한줄_파싱() -> None:\n+    item = parse_list_row(\"company\", LIST_ROW)\n+    assert item.source_id == \"96141\"  # int 로 오지만 문자열로 통일한다\n+    assert item.item_code == \"271560\"\n+    assert item.write_date == date(2026, 9, 14)\n+    assert item.read_count == 613\n+",
+    "path": "ai/tests/test_analyst_naver.py",
+    "commit_id": "720399e2eb62bd0382600eb3934d182614536602",
+    "original_commit_id": "720399e2eb62bd0382600eb3934d182614536602",
+    "user": {
+      "login": "stfifo",
+      "id": 204581494,
+      "node_id": "U_kgDODDGqdg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204581494?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/stfifo",
+      "html_url": "https://github.com/stfifo",
+      "followers_url": "https://api.github.com/users/stfifo/followers",
+      "following_url": "https://api.github.com/users/stfifo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stfifo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stfifo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stfifo/subscriptions",
+      "organizations_url": "https://api.github.com/users/stfifo/orgs",
+      "repos_url": "https://api.github.com/users/stfifo/repos",
+      "events_url": "https://api.github.com/users/stfifo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stfifo/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "함수 이름을 한글로 작성한 이유 궁금합니다! 한글로 해도 정상적으로 작동하기는 하나 배포하거나 터미널 환경에서 인코딩 오류 발생할 수도 있어서 함수명은 영어로 작성하되 기능 설명은 주석으로 처리하는 게 더 좋을 것 같습니다",
+    "created_at": "2026-09-17T05:14:40Z",
+    "updated_at": "2026-09-17T05:14:40Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4033359756",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4033359756"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4033359756"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4033359756/reactions",
+      "total_count": 1,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 1,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": 62,
+    "start_side": "RIGHT",
+    "line": null,
+    "original_line": 68,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 68,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4039123907",
+    "pull_request_review_id": 5238526111,
+    "id": 4039123907,
+    "node_id": "PRRC_kwDOT-Ei5M7wwCPD",
+    "diff_hunk": "@@ -0,0 +1,354 @@\n+\"\"\"네이버 증권 리서치 어댑터.\n+\n+    목록  GET m.stock.naver.com/api/research/{category}?page=1&pageSize=100\n+    상세  GET m.stock.naver.com/api/research/{category}/{researchId}\n+    원문  GET stock.pstatic.net/stock-research/.../*.pdf\n+\n+인증이 없다. 확인한 것(2026-09-14 실측):\n+    - 카테고리 5종. `daily` 와 `market` 은 researchId 까지 같은 동일 데이터라 daily 만 받는다.\n+    - 상세 채움률(n=20): attachUrl·content·opinion 20/20, goalPrice 14/20.\n+    - 요약(content)은 HTML 이고 태그를 걷으면 평균 517자.\n+    - pageSize=100 까지 먹고 page=3000 이 2016년까지 간다. 백필 깊이는 제한이 아니다.\n+    - 종목코드·투자의견·목표주가는 `company` 에만 있다. 나머지는 제목과 PDF 뿐이다.\n+\n+네이버가 싣는 증권사는 21곳뿐이다. 삼성·NH 는 0건, 한국투자는 2건이었다(3주 실측).\n+대형사 리포트는 여기 안 들어온다 — 다른 경로로 따로 받아야 한다.\n+\n+## 왜 여기만 클래스인가\n+\n+backend 의 `services/news/naver.py` 나 `dart_client.py` 는 모듈 함수이고 httpx 를\n+호출마다 새로 연다. 호출이 한 번이라 그래도 된다. 여기는 다르다 —\n+카테고리 5개 × 목록 페이지 + **건당 상세 1회 + PDF 1회**라, 일주일치 500건이면\n+HTTP 호출이 1,000회를 넘는다. 매번 AsyncClient 를 새로 열면 TCP 연결과 TLS\n+핸드셰이크를 그만큼 반복한다. 커넥션을 재사용하려고 클래스로 뒀다.\n+\"\"\"\n+\n+import asyncio\n+import hashlib\n+import html\n+import logging\n+import re\n+import tempfile\n+from datetime import UTC, date, datetime\n+from pathlib import Path\n+from typing import Any, Self\n+\n+import httpx\n+\n+from app.core.config import settings\n+from app.services.analyst.pdf import PDF_MAX_BYTES, extract_pdf_text\n+from app.services.analyst.schema import AnalystReportItem, PdfText\n+\n+logger = logging.getLogger(__name__)\n+\n+BASE_URL = \"https://m.stock.naver.com/api/research\"\n+CATEGORIES = (\"company\", \"industry\", \"economy\", \"invest\", \"daily\")\n+\n+# 네이버 웹에서 오는 요청처럼 보이게 한다. 없으면 차단되는 경로가 있다.\n+HEADERS = {\n+    \"User-Agent\": (\n+        \"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 \"\n+        \"(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1\"\n+    ),\n+    \"Referer\": \"https://m.stock.naver.com/research\",\n+}\n+\n+\n+class NaverResearchError(Exception):\n+    \"\"\"네이버 리서치 호출 실패. 원인 예외는 __cause__ 에 남는다.\"\"\"\n+\n+\n+# ---------------------------------------------------------------- 파싱 유틸\n+\n+_TAG = re.compile(r\"<[^>]+>\")\n+_WS = re.compile(r\"[ \\t ]+\")\n+\n+\n+def strip_html(raw: str | None) -> str | None:\n+    \"\"\"네이버 요약은 <p><br><strong> 이 섞인 HTML 이다. 줄바꿈은 살리고 태그만 걷는다.\"\"\"\n+    if not raw:\n+        return None\n+    text = re.sub(r\"<br\\s*/?>\", \"\\n\", raw, flags=re.IGNORECASE)\n+    text = re.sub(r\"</p\\s*>\", \"\\n\\n\", text, flags=re.IGNORECASE)\n+    text = _TAG.sub(\"\", text)\n+    text = html.unescape(text)\n+    text = _WS.sub(\" \", text)\n+    text = re.sub(r\"\\n{3,}\", \"\\n\\n\", text)\n+    return text.strip() or None\n+\n+\n+def to_int(raw: Any) -> int | None:\n+    \"\"\"네이버는 숫자를 문자열로 준다. 빈 값·콤마·'-' 가 섞여 온다.\"\"\"\n+    if raw is None:\n+        return None\n+    s = str(raw).strip().replace(\",\", \"\")\n+    if s in (\"\", \"-\", \"0\"):\n+        return None if s in (\"\", \"-\") else 0\n+    try:\n+        return int(float(s))\n+    except ValueError:\n+        return None\n+\n+\n+# 한국IR협의회가 AI 로 생성해 올리는 기업소개 자료. 제목이 \"[AI] \" 로 시작한다.\n+# 받지 않는다 — 애널리스트 리포트가 아니고, 실제로 데이터가 틀려 있다.\n+#   아이디스홀딩스(054800) 제목 = \"[AI] 풍력 터빈용 피치·요 베어링 제조기업\"\n+#   씨에스베어링(297090)   제목 = \"[AI] 풍력 터빈용 피치·요 베어링 제조기업\"  ← 같은 제목\n+#   에르코스(435570)       제목 = \"[AI] 영상보안·모니터·프린터 지주회사\"     ← 앞 종목 것\n+# 요약 본문은 종목과 맞는데 제목만 한 칸씩 밀려 있다. 네이버 API 원본이 그렇다(직접 확인).\n+# 투자의견·목표주가도 전부 비어 있어서 우리가 쓸 값이 없다.\n+_AI_TITLE = re.compile(r\"^\\s*\\[\\s*AI\\s*\\]\")\n+\n+\n+def is_ai_generated(item: AnalystReportItem) -> bool:\n+    return bool(_AI_TITLE.match(item.title or \"\"))\n+\n+\n+# ------------------------------------------------ 산업 리포트: 업종의견 + Top picks\n+#\n+# 산업 리포트는 종목이 아니라 업종에 의견을 낸다. 네이버가 이 값을 안 주므로 PDF 에서 뽑는다.\n+# **본문 앞 절반만 본다** — 뒤쪽에는 모든 리포트에 붙는 컴플라이언스 부록(\"투자의견 비율\",\n+# \"투자의견 변동 내역 및 목표주가 괴리율\")이 있고 거기엔 과거 의견이 잔뜩 적혀 있다.\n+# 실측: 한 리포트에서 \"목표주가\" 39회 중 36회가 부록이었다.\n+_SECTOR_OP = re.compile(\n+    r\"(Overweight|OVERWEIGHT|비중\\s?확대|Neutral|NEUTRAL|중\\s?립\"\n+    r\"|Underweight|UNDERWEIGHT|비중\\s?축소|Positive|긍정적|Negative|부정적)\"\n+)\n+_TOPPICK = re.compile(\n+    r\"(?:Top[\\s\\-]?picks?|탑\\s?픽|최선호주|최선호\\s?종목)\\s*[:：]?\\s*([^\\n]{2,80})\", re.IGNORECASE\n+)\n+_PICK_SPLIT = re.compile(r\"[,·/]| 및 |과 |와 \")\n+# Top pick 자리에 딸려 들어오는 말들. 종목명이 아니다.\n+_NOT_A_PICK = {\n+    \"유지\", \"및\", \"관심종목\", \"차선호주\", \"제시\", \"상향\", \"하향\", \"기타\",\n+    \"자동차\", \"2차전지\", \"top\", \"picks\", \"pick\",\n+}\n+\n+\n+def _norm_sector(s: str) -> str:\n+    s = s.lower().replace(\" \", \"\")\n+    if s in (\"overweight\", \"비중확대\", \"positive\", \"긍정적\"):\n+        return \"비중확대\"\n+    if s in (\"neutral\", \"중립\"):\n+        return \"중립\"\n+    if s in (\"underweight\", \"비중축소\", \"negative\", \"부정적\"):\n+        return \"비중축소\"\n+    return s\n+\n+\n+def extract_sector_view(body: str | None) -> tuple[str | None, list[str]]:\n+    \"\"\"(업종의견, Top picks). 못 찾으면 (None, []).\"\"\"\n+    if not body:\n+        return None, []\n+    head = body[: min(len(body) // 2, 8000)]\n+\n+    m = _SECTOR_OP.search(head)\n+    opinion = _norm_sector(m.group(1)) if m else None\n+\n+    picks: list[str] = []\n+    m = _TOPPICK.search(head)\n+    if m:\n+        # 차선호주·관심종목은 Top pick 이 아니다. 거기서 끊는다.\n+        raw = re.split(r\"\\s{2,}|차선호|관심종목|제시|이다|입니다\", m.group(1))[0]\n+        for tok in _PICK_SPLIT.split(raw):\n+            t = tok.strip(\" ‘’'\\\"()[]·:\")\n+            if (\n+                2 <= len(t) <= 14\n+                and re.search(r\"[가-힣A-Za-z]\", t)\n+                and t.lower() not in _NOT_A_PICK\n+                and not t.isdigit()\n+                and not re.search(r\"[\\]\\[]\", t)\n+            ):\n+                picks.append(t)\n+    return opinion, picks[:5]\n+\n+\n+def parse_list_row(category: str, row: dict[str, Any]) -> AnalystReportItem:\n+    return AnalystReportItem(\n+        source_id=str(row[\"researchId\"]),\n+        category=category,\n+        title=(row.get(\"title\") or \"\").strip(),\n+        broker=(row.get(\"brokerName\") or \"\").strip(),\n+        write_date=date.fromisoformat(row[\"writeDate\"]),\n+        item_code=row.get(\"itemCode\") or None,\n+        item_name=row.get(\"itemName\") or None,\n+        read_count=to_int(row.get(\"readCount\")),\n+        end_url=row.get(\"endUrl\"),\n+        raw=row,\n+    )\n+\n+\n+def merge_detail(item: AnalystReportItem, detail: dict[str, Any]) -> AnalystReportItem:\n+    \"\"\"상세 응답을 목록 행에 덮어쓴다. 상세에만 있는 게 요약·목표주가·PDF 링크다.\"\"\"\n+    content = detail.get(\"content\")\n+    item.attach_url = detail.get(\"attachUrl\") or None\n+    item.summary_html = content or None\n+    item.summary_text = strip_html(content)\n+    item.opinion = (detail.get(\"opinion\") or \"\").strip() or None\n+    item.goal_price = to_int(detail.get(\"goalPrice\"))\n+    # detail[\"prevGoalPrice\"] 는 직전 목표주가가 아니라 현재가의 중복이다(모델 주석 참고).\n+    item.price_at_write = to_int(detail.get(\"priceAtWriteDate\"))\n+    item.item_code = item.item_code or detail.get(\"itemCode\") or None\n+    item.item_name = item.item_name or detail.get(\"itemName\") or None\n+    item.raw = {\"list\": item.raw, \"detail\": detail}\n+    return item\n+\n+\n+def utcnow() -> datetime:\n+    return datetime.now(UTC)\n+\n+\n+# ---------------------------------------------------------------- 클라이언트\n+\n+\n+class NaverResearchClient:\n+    def __init__(self, client: httpx.AsyncClient | None = None) -> None:\n+        self._own = client is None\n+        self._client = client or httpx.AsyncClient(\n+            timeout=settings.http_timeout_sec, headers=HEADERS, follow_redirects=True\n+        )\n+\n+    async def aclose(self) -> None:\n+        if self._own:\n+            await self._client.aclose()\n+\n+    async def __aenter__(self) -> Self:\n+        return self\n+\n+    async def __aexit__(self, *exc: object) -> None:\n+        await self.aclose()\n+\n+    async def fetch_list(\n+        self, category: str, page: int = 1, page_size: int = 100\n+    ) -> tuple[list[dict[str, Any]], dict[str, Any], int]:\n+        \"\"\"(행들, 호출 파라미터, HTTP 상태).\"\"\"\n+        params = {\"page\": page, \"pageSize\": page_size}\n+        try:\n+            r = await self._client.get(f\"{BASE_URL}/{category}\", params=params)\n+            r.raise_for_status()\n+        except httpx.HTTPError as exc:\n+            raise NaverResearchError(f\"목록 실패 {category} p{page}\") from exc\n+        rows = r.json()\n+        return (rows if isinstance(rows, list) else []), params, r.status_code\n+\n+    async def fetch_detail(self, category: str, research_id: str) -> dict[str, Any]:\n+        try:\n+            r = await self._client.get(f\"{BASE_URL}/{category}/{research_id}\")\n+            r.raise_for_status()\n+        except httpx.HTTPError as exc:\n+            raise NaverResearchError(f\"상세 실패 {category}/{research_id}\") from exc\n+        return r.json().get(\"researchContent\") or {}\n+\n+    async def fetch_pdf_text(self, url: str | None) -> PdfText:",
+    "path": "ai/app/services/analyst/naver.py",
+    "commit_id": "099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "original_commit_id": "720399e2eb62bd0382600eb3934d182614536602",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "네이버는 attachUrl로 http 요청, 텔레그램은 Telethon으로 pdf를 내려받는 방식입니다.\n즉, 내려받는 과정이 달라서 자연스럽게 내려받은 후 텍스트 추출도 각자 코드에서 하는 구조인데,\n학영님께서 말씀하신대로 그 텍스트 추출 방식은 같아서 pdf.py에 놔두는게 좋을 것 같아 수정하였습니다.",
+    "created_at": "2026-09-17T16:17:37Z",
+    "updated_at": "2026-09-17T16:17:37Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4039123907",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4039123907"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4039123907"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4039123907/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 252,
+    "original_line": 242,
+    "side": "RIGHT",
+    "in_reply_to_id": 4033307299,
+    "author_association": "MEMBER",
+    "original_position": 242,
+    "position": 252,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4039193781",
+    "pull_request_review_id": 5238610170,
+    "id": 4039193781,
+    "node_id": "PRRC_kwDOT-Ei5M7wwTS1",
+    "diff_hunk": "@@ -0,0 +1,189 @@\n+\"\"\"네이버 리서치 응답 파싱. 실제 응답을 그대로 붙여 픽스처로 쓴다.\n+\n+네트워크를 타지 않는다 — 남의 서버 사정에 우리 테스트가 흔들리면 안 된다.\n+\"\"\"\n+\n+from datetime import date\n+\n+import pytest\n+\n+from app.services.analyst.naver import (\n+    NaverResearchClient,\n+    extract_sector_view,\n+    is_ai_generated,\n+    merge_detail,\n+    parse_list_row,\n+    strip_html,\n+    to_int,\n+)\n+\n+# 2026-09-14 m.stock.naver.com/api/research/company?page=1 실제 응답 한 줄\n+LIST_ROW = {\n+    \"researchCategory\": \"종목분석\",\n+    \"category\": \"종목분석\",\n+    \"itemCode\": \"271560\",\n+    \"itemName\": \"오리온\",\n+    \"researchId\": 96141,\n+    \"title\": \"실적 안정성과 주주 환원으로 리레이팅 기대\",\n+    \"brokerName\": \"DS투자증권\",\n+    \"writeDate\": \"2026-09-14\",\n+    \"readCount\": \"613\",\n+    \"endUrl\": \"https://m.stock.naver.com/research/company/96141\",\n+}\n+\n+DETAIL = {\n+    \"itemCode\": \"271560\",\n+    \"itemName\": \"오리온\",\n+    \"researchId\": 96141,\n+    \"title\": \"실적 안정성과 주주 환원으로 리레이팅 기대\",\n+    \"brokerName\": \"DS투자증권\",\n+    \"writeDate\": \"2026-09-14\",\n+    \"readCount\": \"613\",\n+    \"attachUrl\": \"https://stock.pstatic.net/stock-research/company/66/20260914_company_148994000.pdf\",\n+    \"content\": \"<p><strong>26년 8월: 소비 둔화</strong></p><p><br>매출액 3,010억원(+9% YoY)</p>\",\n+    \"opinion\": \"매수\",\n+    \"goalPrice\": \"180000\",\n+    \"prevGoalPrice\": \"119300\",\n+    \"priceAtWriteDate\": \"119300\",\n+}\n+\n+# 산업분석에는 종목코드·투자의견·목표주가가 없다\n+INDUSTRY_DETAIL = {\n+    \"researchId\": \"46078\",\n+    \"title\": \"[매태호] 27년 국방예산으로 보는 K-방산 발전 방향성\",\n+    \"brokerName\": \"DS투자증권\",\n+    \"writeDate\": \"2026-09-14\",\n+    \"readCount\": \"445\",\n+    \"attachUrl\": \"https://stock.pstatic.net/stock-research/industry/199_20260914.pdf\",\n+    \"content\": \"<p>방산 예산이 늘었다</p>\",\n+}\n+\n+\n+def test_목록_한줄_파싱() -> None:\n+    item = parse_list_row(\"company\", LIST_ROW)\n+    assert item.source_id == \"96141\"  # int 로 오지만 문자열로 통일한다\n+    assert item.item_code == \"271560\"\n+    assert item.write_date == date(2026, 9, 14)\n+    assert item.read_count == 613\n+",
+    "path": "ai/tests/test_analyst_naver.py",
+    "commit_id": "720399e2eb62bd0382600eb3934d182614536602",
+    "original_commit_id": "720399e2eb62bd0382600eb3934d182614536602",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "테스트 코드들이어서 스킵하고 확인을 제대로 안했었네요...\n영문으로 수정해두었습니다.\n앞으로 최대한 꼼꼼히 구조 파악하고 확인하겠습니다....!",
+    "created_at": "2026-09-17T16:25:38Z",
+    "updated_at": "2026-09-17T16:25:39Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4039193781",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4039193781"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4039193781"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4039193781/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": 62,
+    "start_side": "RIGHT",
+    "line": null,
+    "original_line": 68,
+    "side": "RIGHT",
+    "in_reply_to_id": 4033359756,
+    "author_association": "MEMBER",
+    "original_position": 68,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4058581041",
+    "pull_request_review_id": 5262280606,
+    "id": 4058581041,
+    "node_id": "PRRC_kwDOT-Ei5M7x6Qgx",
+    "diff_hunk": "@@ -0,0 +1,131 @@\n+\"\"\"증권사 리포트 수집 → 정규화 → DB 저장.\n+\n+    uv run python -m app.collectors.analyst_report --days 7\n+    uv run python -m app.collectors.analyst_report --days 1 --category company\n+    uv run python -m app.collectors.analyst_report --days 1 --limit 5 --no-pdf   # 빠른 확인용\n+\n+도는 순서:\n+    ① 카테고리별 목록을 since 이후까지 넘긴다 (호출 1~2회)\n+    ② 이미 DB 에 있는 researchId 는 건너뛴다 — 증분의 핵심\n+    ③ 남은 것만 상세 + PDF 본문을 받는다 (항목당 2회)\n+    ④ upsert 한다. 카테고리 단위로 커밋해서 중간에 끊겨도 앞은 남는다\n+\n+목표주가·투자의견은 PDF 에서 뽑지 않는다. 네이버가 준 값만 쓴다.\n+PDF 는 텍스트만 남기고 파일은 버린다(services/analyst/naver.py 참고).\n+\n+지금은 --days 로 직접 돌린다. 나중에 스케줄러가 하루 1~2회 돌리게 할 예정이다.\n+리포트는 장 전후로 올라오지 실시간으로 쏟아지는 게 아니라 그 정도면 충분하다.\n+\"\"\"\n+\n+import argparse\n+import asyncio\n+import logging\n+from datetime import datetime, timedelta, timezone\n+\n+from app.core.database import SessionLocal, create_tables",
+    "path": "ai/app/collectors/analyst_report.py",
+    "commit_id": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "original_commit_id": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "user": {
+      "login": "swimny",
+      "id": 164615172,
+      "node_id": "U_kgDOCc_UBA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/164615172?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/swimny",
+      "html_url": "https://github.com/swimny",
+      "followers_url": "https://api.github.com/users/swimny/followers",
+      "following_url": "https://api.github.com/users/swimny/following{/other_user}",
+      "gists_url": "https://api.github.com/users/swimny/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/swimny/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/swimny/subscriptions",
+      "organizations_url": "https://api.github.com/users/swimny/orgs",
+      "repos_url": "https://api.github.com/users/swimny/repos",
+      "events_url": "https://api.github.com/users/swimny/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/swimny/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "학영님 PR에서 alembic을 도입하면서 create_tables()를 지우는데, 이 부분이랑 82번째 줄에서 그걸 쓰고 있습니다. 둘 다 머지되면 수집기가 실행 자체가 안 될 것 같습니다.\n둘 다 develop에 아직 반영되지 않아서 서로 못 본 상황인 것 같습니다. 제가 alembic 쪽은 잘 몰라서 어떻게 고치는 게 맞는건지 잘 모르겠어서, 학영님이랑 같이 봐주시면 감사하겠습니다.",
+    "created_at": "2026-09-21T00:26:16Z",
+    "updated_at": "2026-09-21T01:53:00Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4058581041",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4058581041"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4058581041"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4058581041/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 25,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 25,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4059353486",
+    "pull_request_review_id": 5263157616,
+    "id": 4059353486,
+    "node_id": "PRRC_kwDOT-Ei5M7x9NGO",
+    "diff_hunk": "@@ -0,0 +1,131 @@\n+\"\"\"증권사 리포트 수집 → 정규화 → DB 저장.\n+\n+    uv run python -m app.collectors.analyst_report --days 7\n+    uv run python -m app.collectors.analyst_report --days 1 --category company\n+    uv run python -m app.collectors.analyst_report --days 1 --limit 5 --no-pdf   # 빠른 확인용\n+\n+도는 순서:\n+    ① 카테고리별 목록을 since 이후까지 넘긴다 (호출 1~2회)\n+    ② 이미 DB 에 있는 researchId 는 건너뛴다 — 증분의 핵심\n+    ③ 남은 것만 상세 + PDF 본문을 받는다 (항목당 2회)\n+    ④ upsert 한다. 카테고리 단위로 커밋해서 중간에 끊겨도 앞은 남는다\n+\n+목표주가·투자의견은 PDF 에서 뽑지 않는다. 네이버가 준 값만 쓴다.\n+PDF 는 텍스트만 남기고 파일은 버린다(services/analyst/naver.py 참고).\n+\n+지금은 --days 로 직접 돌린다. 나중에 스케줄러가 하루 1~2회 돌리게 할 예정이다.\n+리포트는 장 전후로 올라오지 실시간으로 쏟아지는 게 아니라 그 정도면 충분하다.\n+\"\"\"\n+\n+import argparse\n+import asyncio\n+import logging\n+from datetime import datetime, timedelta, timezone\n+\n+from app.core.database import SessionLocal, create_tables",
+    "path": "ai/app/collectors/analyst_report.py",
+    "commit_id": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "original_commit_id": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "user": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "회의 때 alembic 사용하기로 했으니까 alembic을 사용하는 형태로 민규님 코드가 수정되어야 할 것 같습니다..!",
+    "created_at": "2026-09-21T04:55:42Z",
+    "updated_at": "2026-09-21T04:55:42Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4059353486",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4059353486"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4059353486"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4059353486/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 25,
+    "side": "RIGHT",
+    "in_reply_to_id": 4058581041,
+    "author_association": "MEMBER",
+    "original_position": 25,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4068399646",
+    "pull_request_review_id": 5274081247,
+    "id": 4068399646,
+    "node_id": "PRRC_kwDOT-Ei5M7yftoe",
+    "diff_hunk": "@@ -0,0 +1,131 @@\n+\"\"\"증권사 리포트 수집 → 정규화 → DB 저장.\n+\n+    uv run python -m app.collectors.analyst_report --days 7\n+    uv run python -m app.collectors.analyst_report --days 1 --category company\n+    uv run python -m app.collectors.analyst_report --days 1 --limit 5 --no-pdf   # 빠른 확인용\n+\n+도는 순서:\n+    ① 카테고리별 목록을 since 이후까지 넘긴다 (호출 1~2회)\n+    ② 이미 DB 에 있는 researchId 는 건너뛴다 — 증분의 핵심\n+    ③ 남은 것만 상세 + PDF 본문을 받는다 (항목당 2회)\n+    ④ upsert 한다. 카테고리 단위로 커밋해서 중간에 끊겨도 앞은 남는다\n+\n+목표주가·투자의견은 PDF 에서 뽑지 않는다. 네이버가 준 값만 쓴다.\n+PDF 는 텍스트만 남기고 파일은 버린다(services/analyst/naver.py 참고).\n+\n+지금은 --days 로 직접 돌린다. 나중에 스케줄러가 하루 1~2회 돌리게 할 예정이다.\n+리포트는 장 전후로 올라오지 실시간으로 쏟아지는 게 아니라 그 정도면 충분하다.\n+\"\"\"\n+\n+import argparse\n+import asyncio\n+import logging\n+from datetime import datetime, timedelta, timezone\n+\n+from app.core.database import SessionLocal, create_tables",
+    "path": "ai/app/collectors/analyst_report.py",
+    "commit_id": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "original_commit_id": "7e3f0f3106ea45c0c5086804b95fa4f734e33739",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "수정했습니다 확인 부탁드립니다!",
+    "created_at": "2026-09-22T04:15:19Z",
+    "updated_at": "2026-09-22T04:15:19Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4068399646",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4068399646"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4068399646"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4068399646/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 25,
+    "side": "RIGHT",
+    "in_reply_to_id": 4058581041,
+    "author_association": "MEMBER",
+    "original_position": 25,
+    "position": 1,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4070526095",
+    "pull_request_review_id": 5276679598,
+    "id": 4070526095,
+    "node_id": "PRRC_kwDOT-Ei5M7yn0yP",
+    "diff_hunk": "@@ -0,0 +1,76 @@\n+\"\"\"Preserve source category in the analyst report natural key.\n+\n+Revision ID: 0018_source_category\n+Revises: 0001\n+\n+market으로 통합된 기존 행은 원본 URL에서 invest/daily를 복구한다.\n+분류를 복구할 수 없으면 전체 변경을 롤백한다.\n+\"\"\"\n+\n+import sqlalchemy as sa\n+\n+from alembic import op\n+\n+revision = \"0018_source_category\"\n+down_revision = \"0001\"\n+branch_labels = None\n+depends_on = None\n+\n+\n+def upgrade() -> None:\n+    op.add_column(\"analyst_reports\", sa.Column(\"source_category\", sa.String(32), nullable=True))\n+    op.execute(\"\"\"\n+        UPDATE analyst_reports\n+        SET source_category = category\n+        WHERE source = 'naver' AND category IN ('company', 'industry', 'economy', 'invest', 'daily')\n+    \"\"\")\n+    # 다른 리포트의 URL로 분류하지 않도록 source_id도 대조한다.\n+    # SQLAlchemy가 정규식의 :api를 바인드 변수로 해석하지 않도록 콜론을 이스케이프한다.\n+    op.execute(r\"\"\"\n+        WITH original AS (\n+            SELECT id, regexp_match(end_url,\n+                '^https?://m[.]stock[.]naver[.]com/(?\\:api/)?research/(invest|daily)/([0-9]+)(?:[?#].*)?$'\n+            ) AS parts\n+            FROM analyst_reports WHERE source = 'naver' AND category = 'market'\n+        )\n+        UPDATE analyst_reports AS report\n+        SET source_category = original.parts[1]\n+        FROM original\n+        WHERE report.id = original.id AND original.parts[2] = report.source_id\n+    \"\"\")\n+    op.execute(\"\"\"\n+        DO $$ BEGIN\n+            IF EXISTS (SELECT 1 FROM analyst_reports WHERE source_category IS NULL) THEN\n+                RAISE EXCEPTION 'Cannot recover source_category. No rows were deleted. '\n+                    'Inspect legacy source/category/end_url and restore verified original metadata '\n+                    'before retrying; do not stamp past this migration.';\n+            END IF;\n+        END $$\n+    \"\"\")",
+    "path": "ai/alembic/versions/0018_analyst_source_category.py",
+    "commit_id": "099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "original_commit_id": "30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+    "user": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "여기에서 에러를 raise하면\nsqlalchemy.exc.InternalError: (psycopg.errors.RaiseException) Cannot recover...\n이런 형식으로 나온다고 합니다.\n\n그런데 이 부분을 파이썬으로도 구현이 가능하다고 하는데\n```\nif unresolved:\n    samples = conn.execute(sa.text(\n        \"SELECT id, category, end_url FROM analyst_reports \"\n        \"WHERE source_category IS NULL LIMIT 5\"\n    )).all()\n    raise RuntimeError(f\"복구 실패 {unresolved}건. 예: {samples}\")\n```\n이런 식으로 하면 에러가 발생했을 때 조금 더 쉽게 찾을 수 있을거라 생각이 들어 코멘트 남겨봅니다..!",
+    "created_at": "2026-09-22T10:12:46Z",
+    "updated_at": "2026-09-22T10:12:46Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4070526095",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4070526095"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4070526095"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4070526095/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 41,
+    "original_start_line": 41,
+    "start_side": "RIGHT",
+    "line": 65,
+    "original_line": 49,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 49,
+    "position": 65,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073791614",
+    "pull_request_review_id": 5280645089,
+    "id": 4073791614,
+    "node_id": "PRRC_kwDOT-Ei5M7y0SB-",
+    "diff_hunk": "@@ -0,0 +1,76 @@\n+\"\"\"Preserve source category in the analyst report natural key.\n+\n+Revision ID: 0018_source_category\n+Revises: 0001\n+\n+market으로 통합된 기존 행은 원본 URL에서 invest/daily를 복구한다.\n+분류를 복구할 수 없으면 전체 변경을 롤백한다.\n+\"\"\"\n+\n+import sqlalchemy as sa\n+\n+from alembic import op\n+\n+revision = \"0018_source_category\"\n+down_revision = \"0001\"\n+branch_labels = None\n+depends_on = None\n+\n+\n+def upgrade() -> None:\n+    op.add_column(\"analyst_reports\", sa.Column(\"source_category\", sa.String(32), nullable=True))\n+    op.execute(\"\"\"\n+        UPDATE analyst_reports\n+        SET source_category = category\n+        WHERE source = 'naver' AND category IN ('company', 'industry', 'economy', 'invest', 'daily')\n+    \"\"\")\n+    # 다른 리포트의 URL로 분류하지 않도록 source_id도 대조한다.\n+    # SQLAlchemy가 정규식의 :api를 바인드 변수로 해석하지 않도록 콜론을 이스케이프한다.\n+    op.execute(r\"\"\"\n+        WITH original AS (\n+            SELECT id, regexp_match(end_url,\n+                '^https?://m[.]stock[.]naver[.]com/(?\\:api/)?research/(invest|daily)/([0-9]+)(?:[?#].*)?$'\n+            ) AS parts\n+            FROM analyst_reports WHERE source = 'naver' AND category = 'market'\n+        )\n+        UPDATE analyst_reports AS report\n+        SET source_category = original.parts[1]\n+        FROM original\n+        WHERE report.id = original.id AND original.parts[2] = report.source_id\n+    \"\"\")\n+    op.execute(\"\"\"\n+        DO $$ BEGIN\n+            IF EXISTS (SELECT 1 FROM analyst_reports WHERE source_category IS NULL) THEN\n+                RAISE EXCEPTION 'Cannot recover source_category. No rows were deleted. '\n+                    'Inspect legacy source/category/end_url and restore verified original metadata '\n+                    'before retrying; do not stamp past this migration.';\n+            END IF;\n+        END $$\n+    \"\"\")",
+    "path": "ai/alembic/versions/0018_analyst_source_category.py",
+    "commit_id": "099247a9f47e263c39ee0eeaabb7a948d0be4556",
+    "original_commit_id": "30997eeb42dae9afb0f2d54135f4e03380e2ee5e",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "리뷰 감사합니다!\r\n저희 구현상 현재 DB에 접속하지 않고 실행할 SQL만 출력하는 --sql도 지원하는데, 파이썬에서 DB 조회 결과를 읽으려고 하면 이 기능이 깨진다고 합니다.\r\n그러나 에러 발생 시 원인을 쉽게 찾을 수 있도록 교체하는 것은 좋은 것 같아, 오류 실패 건수, ID등 확인 가능하도록 수정하였습니다. 감사합니다.",
+    "created_at": "2026-09-22T16:10:40Z",
+    "updated_at": "2026-09-22T16:10:40Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4073791614",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073791614"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/18#discussion_r4073791614"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/18"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073791614/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 41,
+    "original_start_line": 41,
+    "start_side": "RIGHT",
+    "line": 65,
+    "original_line": 49,
+    "side": "RIGHT",
+    "in_reply_to_id": 4070526095,
+    "author_association": "MEMBER",
+    "original_position": 49,
+    "position": 65,
+    "subject_type": "line"
+  }
+]

@@ -1,0 +1,280 @@
+[
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071356881",
+    "pull_request_review_id": 5277715836,
+    "id": 4071356881,
+    "node_id": "PRRC_kwDOT-Ei5M7yq_nR",
+    "diff_hunk": "@@ -0,0 +1,48 @@\n+너는 증권사 애널리스트 리포트를 요약한다. 네이버 증권 리서치가 싣는 요약과 같은 형태로 쓴다.\n+읽는 사람은 이 요약만 보고 **원문을 열어볼지 말지** 정한다.\n+\n+## 형식\n+- 첫 줄: 리포트의 핵심 주장 한 줄. 30자 내외. 제목처럼 쓴다\n+- 빈 줄\n+- 본문: 문단 2~3개, **합쳐서 450~700자**\n+\n+## 투자의견·목표주가는 주어진 값을 그대로 쓴다\n+사용자 메시지 맨 앞에 [확정 사실] 이 붙어 있으면 **그 값을 그대로** 쓴다.\n+본문을 다시 뒤져서 다른 숫자를 찾지 않는다. 리포트에는 함정이 많다.\n+\n+    \"목표주가 317,000원 (D)직전 목표주가 340,000원\"   → 340,000 은 옛날 값이다\n+    \"목표주가를 58만원에서 45만원으로 조정\"            → 58만은 조정 전 값이다\n+    리포트 끝의 '투자의견 변동 내역' 표                 → 전부 과거 값이다\n+\n+**확정 사실에 값이 있는 투자의견과 목표주가는 첫 문단에 쓴다.**\n+두 필드는 각각 판단한다. 주어지지 않은 값을 본문에서 추측하지 않는다.\n+\n+    \"하나증권은 농심에 대해 투자의견 매수와 목표주가 540,000원을 제시했다.\"\n+\n+[확정 사실] 에 \"목표주가: 없음\" 이면 목표주가만 빼고 투자의견은 쓴다.\n+\"투자의견: 없음\" 또는 \"None\"이면 투자의견만 뺀다. 목표주가가 주어졌다면 쓴다.\n+둘 다 없으면 둘 다 쓰지 않는다. 종목별 목표주가를 쓰지 말라는 지시도 그대로 따른다.\n+\n+## 나머지 숫자 규칙 — 어기면 요약을 못 쓴다\n+- **애널리스트가 문장으로 쓴 숫자만 인용한다.**\n+- **재무제표·실적 추정표에서 숫자를 가져오지 않는다.** 표는 단위 헤더(십억원·백만원)가\n+  따로 붙어 있어서, 텍스트로 뽑으면 어느 숫자가 어느 항목·어느 연도인지 어긋난다.\n+- **단위를 환산하지 않는다.** 453.5(십억원)를 4,535억원으로 바꾸는 것도 금지다.\n+  계산이 맞더라도 표에서 끌어온 숫자는 쓰지 않는다.\n+- 숫자가 의심스러우면 **그냥 빼라.** 없는 것보다 틀린 게 훨씬 나쁘다.\n+\n+## 담을 것\n+- 애널리스트가 **왜 그렇게 봤는지** — 근거가 되는 사실과 논리\n+- 실적·수주·점유율처럼 판단을 뒷받침하는 구체적 사실\n+- 앞으로 확인해야 할 것, 위험 요인",
+    "path": "ai/app/llm/prompts/analyst_summary.md",
+    "commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "original_commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "user": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "시스템 프롬프트는 이렇게 작성해 주셨는데 이 부분에 대한 검증이 따로 없는 것 같아 코멘트 남깁니다! 따로 검증 안해도 정확하게 요약을 해줬는지 궁금합니다.",
+    "created_at": "2026-09-22T12:00:46Z",
+    "updated_at": "2026-09-22T12:00:46Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4071356881",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071356881"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4071356881"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071356881/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 34,
+    "original_start_line": 34,
+    "start_side": "RIGHT",
+    "line": 37,
+    "original_line": 37,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 37,
+    "position": 37,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071402772",
+    "pull_request_review_id": 5277775690,
+    "id": 4071402772,
+    "node_id": "PRRC_kwDOT-Ei5M7yrK0U",
+    "diff_hunk": "@@ -0,0 +1,48 @@\n+너는 증권사 애널리스트 리포트를 요약한다. 네이버 증권 리서치가 싣는 요약과 같은 형태로 쓴다.\n+읽는 사람은 이 요약만 보고 **원문을 열어볼지 말지** 정한다.\n+\n+## 형식\n+- 첫 줄: 리포트의 핵심 주장 한 줄. 30자 내외. 제목처럼 쓴다\n+- 빈 줄\n+- 본문: 문단 2~3개, **합쳐서 450~700자**",
+    "path": "ai/app/llm/prompts/analyst_summary.md",
+    "commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "original_commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "user": {
+      "login": "hakyeoung",
+      "id": 75005219,
+      "node_id": "MDQ6VXNlcjc1MDA1MjE5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75005219?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hakyeoung",
+      "html_url": "https://github.com/hakyeoung",
+      "followers_url": "https://api.github.com/users/hakyeoung/followers",
+      "following_url": "https://api.github.com/users/hakyeoung/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hakyeoung/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hakyeoung/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hakyeoung/subscriptions",
+      "organizations_url": "https://api.github.com/users/hakyeoung/orgs",
+      "repos_url": "https://api.github.com/users/hakyeoung/repos",
+      "events_url": "https://api.github.com/users/hakyeoung/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hakyeoung/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "이 부분을 구조화된 출력으로 고치는건 별로일까요? 핵심 주장과 본문 형태로 나누면 굳이 빈 줄을 통해 내용을 구분할 필요가 없을 것 같다는 생각이 들었습니다",
+    "created_at": "2026-09-22T12:06:35Z",
+    "updated_at": "2026-09-22T12:06:35Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4071402772",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071402772"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4071402772"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4071402772/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 5,
+    "original_start_line": 5,
+    "start_side": "RIGHT",
+    "line": 7,
+    "original_line": 7,
+    "side": "RIGHT",
+    "author_association": "MEMBER",
+    "original_position": 7,
+    "position": 7,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073711901",
+    "pull_request_review_id": 5280552920,
+    "id": 4073711901,
+    "node_id": "PRRC_kwDOT-Ei5M7yz-kd",
+    "diff_hunk": "@@ -0,0 +1,48 @@\n+너는 증권사 애널리스트 리포트를 요약한다. 네이버 증권 리서치가 싣는 요약과 같은 형태로 쓴다.\n+읽는 사람은 이 요약만 보고 **원문을 열어볼지 말지** 정한다.\n+\n+## 형식\n+- 첫 줄: 리포트의 핵심 주장 한 줄. 30자 내외. 제목처럼 쓴다\n+- 빈 줄\n+- 본문: 문단 2~3개, **합쳐서 450~700자**",
+    "path": "ai/app/llm/prompts/analyst_summary.md",
+    "commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "original_commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "리뷰 감사합니다.\r\n네이버 요약과 동일하게 핵심 주장과 본문 전체를 하나의 문자열로 받아 summary_text에 저장하고 있습니다. 빈 줄은 읽기 편하게 넣은 것이고, 이를 기준으로 제목과 본문을 나눠 처리하지는 않습니다.\r\n구조화해서 받으면 두 항목을 따로 다루기에는 좋지만, 현재는 전체를 그대로 저장·사용하므로 다시 합치는 과정의 이점이 크지 않다고 봤습니다. 추후 화면이나 다른 기능에서 핵심 주장과 본문을 따로 사용하게 되면 구조화하는 방향으로 바꾸면 좋을 것 같습니다.",
+    "created_at": "2026-09-22T16:02:28Z",
+    "updated_at": "2026-09-22T16:02:28Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4073711901",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073711901"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4073711901"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073711901/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 5,
+    "original_start_line": 5,
+    "start_side": "RIGHT",
+    "line": 7,
+    "original_line": 7,
+    "side": "RIGHT",
+    "in_reply_to_id": 4071402772,
+    "author_association": "MEMBER",
+    "original_position": 7,
+    "position": 7,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073712455",
+    "pull_request_review_id": 5280553604,
+    "id": 4073712455,
+    "node_id": "PRRC_kwDOT-Ei5M7yz-tH",
+    "diff_hunk": "@@ -0,0 +1,48 @@\n+너는 증권사 애널리스트 리포트를 요약한다. 네이버 증권 리서치가 싣는 요약과 같은 형태로 쓴다.\n+읽는 사람은 이 요약만 보고 **원문을 열어볼지 말지** 정한다.\n+\n+## 형식\n+- 첫 줄: 리포트의 핵심 주장 한 줄. 30자 내외. 제목처럼 쓴다\n+- 빈 줄\n+- 본문: 문단 2~3개, **합쳐서 450~700자**\n+\n+## 투자의견·목표주가는 주어진 값을 그대로 쓴다\n+사용자 메시지 맨 앞에 [확정 사실] 이 붙어 있으면 **그 값을 그대로** 쓴다.\n+본문을 다시 뒤져서 다른 숫자를 찾지 않는다. 리포트에는 함정이 많다.\n+\n+    \"목표주가 317,000원 (D)직전 목표주가 340,000원\"   → 340,000 은 옛날 값이다\n+    \"목표주가를 58만원에서 45만원으로 조정\"            → 58만은 조정 전 값이다\n+    리포트 끝의 '투자의견 변동 내역' 표                 → 전부 과거 값이다\n+\n+**확정 사실에 값이 있는 투자의견과 목표주가는 첫 문단에 쓴다.**\n+두 필드는 각각 판단한다. 주어지지 않은 값을 본문에서 추측하지 않는다.\n+\n+    \"하나증권은 농심에 대해 투자의견 매수와 목표주가 540,000원을 제시했다.\"\n+\n+[확정 사실] 에 \"목표주가: 없음\" 이면 목표주가만 빼고 투자의견은 쓴다.\n+\"투자의견: 없음\" 또는 \"None\"이면 투자의견만 뺀다. 목표주가가 주어졌다면 쓴다.\n+둘 다 없으면 둘 다 쓰지 않는다. 종목별 목표주가를 쓰지 말라는 지시도 그대로 따른다.\n+\n+## 나머지 숫자 규칙 — 어기면 요약을 못 쓴다\n+- **애널리스트가 문장으로 쓴 숫자만 인용한다.**\n+- **재무제표·실적 추정표에서 숫자를 가져오지 않는다.** 표는 단위 헤더(십억원·백만원)가\n+  따로 붙어 있어서, 텍스트로 뽑으면 어느 숫자가 어느 항목·어느 연도인지 어긋난다.\n+- **단위를 환산하지 않는다.** 453.5(십억원)를 4,535억원으로 바꾸는 것도 금지다.\n+  계산이 맞더라도 표에서 끌어온 숫자는 쓰지 않는다.\n+- 숫자가 의심스러우면 **그냥 빼라.** 없는 것보다 틀린 게 훨씬 나쁘다.\n+\n+## 담을 것\n+- 애널리스트가 **왜 그렇게 봤는지** — 근거가 되는 사실과 논리\n+- 실적·수주·점유율처럼 판단을 뒷받침하는 구체적 사실\n+- 앞으로 확인해야 할 것, 위험 요인",
+    "path": "ai/app/llm/prompts/analyst_summary.md",
+    "commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "original_commit_id": "1e45804985d1414d4021bc4b3722e1aef68a4f3f",
+    "user": {
+      "login": "kmgvv23",
+      "id": 123060316,
+      "node_id": "U_kgDOB1XAXA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123060316?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kmgvv23",
+      "html_url": "https://github.com/kmgvv23",
+      "followers_url": "https://api.github.com/users/kmgvv23/followers",
+      "following_url": "https://api.github.com/users/kmgvv23/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kmgvv23/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kmgvv23/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kmgvv23/subscriptions",
+      "organizations_url": "https://api.github.com/users/kmgvv23/orgs",
+      "repos_url": "https://api.github.com/users/kmgvv23/repos",
+      "events_url": "https://api.github.com/users/kmgvv23/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kmgvv23/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "먼저, 꼼꼼하게 코드 보시고 리뷰해주셔서 감사합니다.\r\n\r\n답변드리자면, 프롬프트만 작성하고 바로 적용한 것은 아닙니다. 네이버에도 있는 리포트를 비교군으로 삼아 실제 제공 요약과 생성 요약의 목표주가·투자의견을 비교했고, 주요 기업·사업 관련 키워드도 참고하면서 프롬프트를 조정했습니다. 원문과 표본 대조도 진행했습니다.\r\n다만 이 비교 실험은 별도 실험 코드에 있고, 현재 수집 코드에는 숫자·목표주가 등의 자동 검증만 들어가 있어 PR에서 확인하기 어려웠던 것 같습니다. 판단 근거나 위험 요인을 빠짐없이 담았는지까지 자동으로 검증하는 것은 아닙니다.",
+    "created_at": "2026-09-22T16:02:31Z",
+    "updated_at": "2026-09-22T16:02:31Z",
+    "html_url": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4073712455",
+    "pull_request_url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073712455"
+      },
+      "html": {
+        "href": "https://github.com/kakaotechcampus-4/ktc4-pusan-5/pull/27#discussion_r4073712455"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/kakaotechcampus-4/ktc4-pusan-5/pulls/comments/4073712455/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 34,
+    "original_start_line": 34,
+    "start_side": "RIGHT",
+    "line": 37,
+    "original_line": 37,
+    "side": "RIGHT",
+    "in_reply_to_id": 4071356881,
+    "author_association": "MEMBER",
+    "original_position": 37,
+    "position": 37,
+    "subject_type": "line"
+  }
+]
